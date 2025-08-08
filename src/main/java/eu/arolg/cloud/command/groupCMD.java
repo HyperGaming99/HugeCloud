@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import eu.arolg.cloud.service.specific.BukkitServiceSetup;
 import eu.arolg.cloud.utils.ANSICodes;
 import eu.arolg.cloud.utils.MessageType;
 import eu.arolg.cloud.HugeCloud;
@@ -57,6 +58,7 @@ public class groupCMD extends Command {
 
             serviceName = reader.readLine(prefix + "Group setup » ");
             if (serviceName.equalsIgnoreCase("exit")) {
+                HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
                 HugeCloud.getConsoleManager().sendMessage("Setup abgebrochen.", MessageType.INFO);
                 return;
             }
@@ -76,6 +78,7 @@ public class groupCMD extends Command {
             HugeCloud.getConsoleManager().sendMessageLeer();
             ram = reader.readLine(prefix + "Group setup » ");
             if (ram.equalsIgnoreCase("exit")) {
+                HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
                 HugeCloud.getConsoleManager().sendMessage("Setup abgebrochen.", MessageType.INFO);
                 return;
             }
@@ -123,71 +126,12 @@ public class groupCMD extends Command {
 
         String confirmation = reader.readLine(prefix + "Group setup » " + "Möchten Sie diese Gruppe erstellen? (yes/no): ");
         if (!confirmation.equalsIgnoreCase("yes") && !confirmation.equalsIgnoreCase("y")) {
+            HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
             HugeCloud.getConsoleManager().sendMessage("Setup abgebrochen.", MessageType.INFO);
             return;
         }
 
-        // Create service folder
-        File serviceFolder = new File(System.getProperty("user.dir") + "/services/" + serviceName);
-        if (!serviceFolder.exists() && !serviceFolder.mkdirs()) {
-            HugeCloud.getConsoleManager().sendMessage("Failed to create service folder.", MessageType.ERROR);
-            return;
-        }
-
-        // Create configs folder
-        File configsFolder = new File(System.getProperty("user.dir") + "/services/configs");
-        if (!configsFolder.exists() && !configsFolder.mkdirs()) {
-            HugeCloud.getConsoleManager().sendMessage("Failed to create configs folder.", MessageType.ERROR);
-            return;
-        }
-
-        // Generate UUID and write to name.json
-        UUID serviceId = UUID.randomUUID();
-        JsonObject serviceData = new JsonObject();
-        serviceData.addProperty("id", serviceId.toString());
-        serviceData.addProperty("name", serviceName);
-        serviceData.addProperty("ram", ram);
-        serviceData.addProperty("group", "ll");
-        serviceData.addProperty("port", port);
-
-        File configFile = new File(configsFolder, serviceName + ".json");
-        try {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            Files.writeString(configFile.toPath(), gson.toJson(serviceData));
-        } catch (Exception e) {
-            HugeCloud.getConsoleManager().sendMessage("Failed to write config file: " + e.getMessage(), MessageType.ERROR);
-            e.printStackTrace();
-            return;
-        }
-
-        // Create eula.txt
-        File eulaFile = new File(serviceFolder, "eula.txt");
-        try {
-            Files.writeString(eulaFile.toPath(), "eula=true");
-        } catch (IOException e) {
-            HugeCloud.getConsoleManager().sendMessage("Failed to create EULA file: " + e.getMessage(), MessageType.ERROR);
-            e.printStackTrace();
-            return;
-        }
-
-        // Download JAR file
-        String downloadUrl = "https://fill-data.papermc.io/v1/objects/5ee4f542f628a14c644410b08c94ea42e772ef4d29fe92973636b6813d4eaffc/paper-1.21.4-232.jar";
-        File jarFile = new File(serviceFolder, "server.jar");
-
-        try (var in = new BufferedInputStream(new URL(downloadUrl).openStream());
-             var fileOutputStream = new FileOutputStream(jarFile)) {
-
-            byte[] dataBuffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                fileOutputStream.write(dataBuffer, 0, bytesRead);
-            }
-
-            HugeCloud.getConsoleManager().sendMessage("Das Setup der Gruppe " + serviceName + " wurde erfolgreich abgeschlossen.", MessageType.INFO);
-        } catch (Exception e) {
-            HugeCloud.getConsoleManager().sendMessage("Failed to download JAR file: " + e.getMessage(), MessageType.ERROR);
-            e.printStackTrace();
-        }
+        BukkitServiceSetup.setup(serviceName, Integer.parseInt(ram), port, "Server", false);
     }
 
     public void onList() {

@@ -1,6 +1,5 @@
 package eu.arolg.cloud;
 
-import eu.arolg.cloud.command.TestCMD;
 import eu.arolg.cloud.command.groupCMD;
 import eu.arolg.cloud.managers.CloudManager;
 import eu.arolg.cloud.managers.CommandManager;
@@ -67,9 +66,9 @@ public class HugeCloud {
 
 
         //Command Registration
-        HugeCloud.getCommandManager().registerCommand(new TestCMD());
         HugeCloud.getCommandManager().registerCommand(new eu.arolg.cloud.command.ShutdownCMD());
         HugeCloud.getCommandManager().registerCommand(new groupCMD());
+        HugeCloud.getCommandManager().registerCommand(new eu.arolg.cloud.command.clearCMD());
 
         Thread commandSystem = new Thread(getCommandManager().reading(), "COMMAND");
         commandSystem.start();
