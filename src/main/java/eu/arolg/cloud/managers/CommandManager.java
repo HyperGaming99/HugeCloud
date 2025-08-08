@@ -5,9 +5,6 @@ import eu.arolg.cloud.command.Command;
 import eu.arolg.cloud.utils.ANSICodes;
 import eu.arolg.cloud.utils.MessageType;
 import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.impl.history.DefaultHistory;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
