@@ -1,32 +1,34 @@
 package eu.arolg.cloud.service.specific;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import eu.arolg.cloud.HugeCloud;
 import eu.arolg.cloud.service.Service;
 import eu.arolg.cloud.service.ServiceState;
 import eu.arolg.cloud.utils.MessageType;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class BukkitService extends Service {
-
-    private final int maxPlayers;
     private final String name;
     private final String group;
     private final boolean dynamic;
     private final int port;
     private final int ram;
-    //Status from ServiceState
     private  ServiceState status;
+
     private Process process;
-    private ProcessBuilder processBuilder;
 
-
-    public BukkitService(UUID id, int port, int ram, String name, String group, boolean dynamic, int maxPlayers) {
+    public BukkitService(UUID id, int port, int ram, String name, String group, boolean dynamic) {
         super(id, port, ram, name, group, dynamic);
-        this.maxPlayers = maxPlayers;
         this.name = name;
         this.group = group;
         this.dynamic = dynamic;
@@ -41,7 +43,7 @@ public class BukkitService extends Service {
             return;
         }
         status = ServiceState.ONLINE;
-        File serviceFolder = new File(System.getProperty("user.dir") + "/local/groups/" + name);
+        File serviceFolder = new File(System.getProperty("user.dir") + "/static/" + name);
         File jarFile = new File(serviceFolder, "server.jar");
 
         if (!jarFile.exists()) {
@@ -83,7 +85,7 @@ public class BukkitService extends Service {
             process.destroy(); // sanfter Versuch
             try {
                 if (!process.waitFor(10, TimeUnit.SECONDS)) {
-                    process.destroyForcibly(); // brutal, wenn nötig
+                    process.destroyForcibly();
                 }
             } catch (InterruptedException e) {
                 HugeCloud.getConsoleManager().sendMessage("Fehler beim Stoppen von " + name, MessageType.ERROR);
@@ -92,14 +94,71 @@ public class BukkitService extends Service {
 
             HugeCloud.getConsoleManager().sendMessage("Group " + name + " wurde gestoppt.", MessageType.INFO);
             status = ServiceState.OFFLINE;
-        } else {
-            HugeCloud.getConsoleManager().sendMessage("Kein laufender Prozess für " + name + ".", MessageType.ERROR);
         }
     }
 
     @Override
     public void create() {
+        if(dynamic) {
+            File serviceFolder = new File(System.getProperty("user.dir") + "/static/" + name);
+            if (!serviceFolder.exists() && !serviceFolder.mkdirs()) {
+                HugeCloud.getConsoleManager().sendMessage("Failed to create service folder.", MessageType.ERROR);
+                return;
+            }
 
+            File configsFolder = new File(System.getProperty("user.dir") + "/local/groups/");
+            if (!configsFolder.exists() && !configsFolder.mkdirs()) {
+                HugeCloud.getConsoleManager().sendMessage("Failed to create configs folder.", MessageType.ERROR);
+                return;
+            }
+
+            UUID serviceId = UUID.randomUUID();
+            JsonObject serviceData = new JsonObject();
+            serviceData.addProperty("id", serviceId.toString());
+            serviceData.addProperty("port", port);
+            serviceData.addProperty("name", name);
+            serviceData.addProperty("ram", ram);
+            serviceData.addProperty("group", group);
+            serviceData.addProperty("dynamic", dynamic);
+            File configFile = new File(configsFolder, name + ".json");
+            try {
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                Files.writeString(configFile.toPath(), gson.toJson(serviceData));
+            } catch (Exception e) {
+                HugeCloud.getConsoleManager().sendMessage("Failed to write config file: " + e.getMessage(), MessageType.ERROR);
+                e.printStackTrace();
+                return;
+            }
+
+            File eulaFile = new File(serviceFolder, "eula.txt");
+            try {
+                Files.writeString(eulaFile.toPath(), "eula=true");
+            } catch (IOException e) {
+                HugeCloud.getConsoleManager().sendMessage("Failed to create EULA file: " + e.getMessage(), MessageType.ERROR);
+                e.printStackTrace();
+                return;
+            }
+
+            String downloadUrl = "https://fill-data.papermc.io/v1/objects/5ee4f542f628a14c644410b08c94ea42e772ef4d29fe92973636b6813d4eaffc/paper-1.21.4-232.jar";
+            File jarFile = new File(serviceFolder, "server.jar");
+
+            try (var in = new BufferedInputStream(new URL(downloadUrl).openStream());
+                 var fileOutputStream = new FileOutputStream(jarFile)) {
+
+                byte[] dataBuffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                    fileOutputStream.write(dataBuffer, 0, bytesRead);
+                }
+                HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+                HugeCloud.getConsoleManager().sendMessage("Das Setup der Gruppe " + name + " wurde erfolgreich abgeschlossen.", MessageType.INFO);
+            } catch (Exception e) {
+                HugeCloud.getConsoleManager().sendMessage("Failed to download JAR file: " + e.getMessage(), MessageType.ERROR);
+                e.printStackTrace();
+            }
+        }else {
+
+        }
     }
 
     public String getName() {
@@ -112,5 +171,17 @@ public class BukkitService extends Service {
 
     public int getRam() {
         return ram;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public boolean isDynamic() {
+        return dynamic;
     }
 }

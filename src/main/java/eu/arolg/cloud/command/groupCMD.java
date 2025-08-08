@@ -1,12 +1,12 @@
 package eu.arolg.cloud.command;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import eu.arolg.cloud.managers.CloudManager;
 import eu.arolg.cloud.service.ServiceState;
+import eu.arolg.cloud.service.ServiceType;
 import eu.arolg.cloud.service.specific.BukkitService;
-import eu.arolg.cloud.service.specific.BukkitServiceSetup;
+import eu.arolg.cloud.service.specific.BungeeService;
 import eu.arolg.cloud.utils.ANSICodes;
 import eu.arolg.cloud.utils.MessageType;
 import eu.arolg.cloud.HugeCloud;
@@ -14,10 +14,6 @@ import eu.arolg.cloud.utils.PortFinder;
 import org.jline.reader.LineReader;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 public class groupCMD extends Command {
@@ -46,7 +42,7 @@ public class groupCMD extends Command {
         } else if (args[0].equalsIgnoreCase("stop")) {
             onStop(args);
         }else if (args[0].equalsIgnoreCase("status")) {
-            BukkitService service = BukkitServiceSetup.getServiceByName(args[1]);
+            BukkitService service = CloudManager.getServiceByName(args[1]);
             ServiceState state = service.getStatus();
             HugeCloud.getConsoleManager().sendMessage("Status von " + service.getName() + ": " + state, MessageType.INFO);
         }else {
@@ -59,7 +55,6 @@ public class groupCMD extends Command {
         LineReader reader = HugeCloud.getConsoleManager().createLineReader();
 
         String serviceName;
-        // Prompt for service name
         while (true) {
             HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
             HugeCloud.getConsoleManager().sendMessageLeer();
@@ -79,7 +74,6 @@ public class groupCMD extends Command {
             HugeCloud.getConsoleManager().sendMessage("Der Gruppenname darf nicht leer sein.", MessageType.ERROR);
         }
 
-        // Prompt for RAM
         String ram;
         while (true) {
             HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
@@ -103,35 +97,63 @@ public class groupCMD extends Command {
         }
 
 
-        // Prompt for and validate port
-        int port;
+        String group;
         while (true) {
-            try {
+            HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            HugeCloud.getConsoleManager().sendMessage("Bitte geben Sie ein Typ an:", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Auswahlmöglichkeiten: 'proxy', 'server', 'lobby'", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessageLeer();
+
+            group = reader.readLine(prefix + "Group setup » ");
+            if (group.equalsIgnoreCase("exit")) {
                 HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
-                HugeCloud.getConsoleManager().sendMessageLeer();
-                HugeCloud.getConsoleManager().sendMessage("Bitte geben Sie den Port an für die Gruppe.", MessageType.INFO);
-                HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
-                HugeCloud.getConsoleManager().sendMessageLeer();
-                String portInput = reader.readLine(prefix + "Group setup » ");
-                port = Integer.parseInt(portInput);
-                if (PortFinder.available(port)) {
-                    break;
-                } else {
-                    HugeCloud.getConsoleManager().sendMessage("Port is already in use. Please enter a different port.", MessageType.ERROR);
-                }
-            } catch (NumberFormatException e) {
-                HugeCloud.getConsoleManager().sendMessage("Invalid port. Please enter a valid number.", MessageType.ERROR);
+                HugeCloud.getConsoleManager().sendMessage("Setup abgebrochen.", MessageType.INFO);
+                return;
             }
+            if (!group.equalsIgnoreCase("proxy") || !group.equalsIgnoreCase("server") || !group.equalsIgnoreCase("lobby")) {
+                break;
+            }
+            if (!group.isBlank()) {
+                break;
+            }
+            HugeCloud.getConsoleManager().sendMessage("Die Group darf nicht leer sein.", MessageType.ERROR);
+        }
+        int port;
+        if(!group.contains("proxy")) {
+            while (true) {
+                try {
+                    HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+                    HugeCloud.getConsoleManager().sendMessageLeer();
+                    HugeCloud.getConsoleManager().sendMessage("Bitte geben Sie den Port an für die Gruppe.", MessageType.INFO);
+                    HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+                    HugeCloud.getConsoleManager().sendMessageLeer();
+                    String portInput = reader.readLine(prefix + "Group setup » ");
+                    port = Integer.parseInt(portInput);
+                    if (PortFinder.available(port)) {
+                        break;
+                    } else {
+                        HugeCloud.getConsoleManager().sendMessage("Port is already in use. Please enter a different port.", MessageType.ERROR);
+                    }
+                } catch (NumberFormatException e) {
+                    HugeCloud.getConsoleManager().sendMessage("Invalid port. Please enter a valid number.", MessageType.ERROR);
+                }
+            }
+        }else  {
+            port = PortFinder.getFreePort(ServiceType.PROXY);
+            HugeCloud.getConsoleManager().sendMessage("Der Port wurde automatisch auf " + port + " gesetzt.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Sie können den Port später in der Konfigurationsdatei ändern.", MessageType.INFO);
         }
 
-        // Confirm details
+
         HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
         HugeCloud.getConsoleManager().sendMessageLeer();
         HugeCloud.getConsoleManager().sendMessage("Bitte überprüfen Sie die folgenden Details:", MessageType.INFO);
         HugeCloud.getConsoleManager().sendMessageLeer();
         HugeCloud.getConsoleManager().sendMessage("Name: " + serviceName, MessageType.INFO);
         HugeCloud.getConsoleManager().sendMessage("RAM: " + ram + " MB", MessageType.INFO);
-        HugeCloud.getConsoleManager().sendMessage("Group: " + "ol", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage("Group: " + group, MessageType.INFO);
         HugeCloud.getConsoleManager().sendMessage("Port: " + port, MessageType.INFO);
         HugeCloud.getConsoleManager().sendMessageLeer();
 
@@ -142,11 +164,23 @@ public class groupCMD extends Command {
             return;
         }
 
-        BukkitServiceSetup.setup(serviceName, Integer.parseInt(ram), port, "Server", false);
+        boolean dynamic = true;
+
+        int ramValue = Integer.parseInt(ram);
+        //is proxy
+        if (group.contains("proxy")) {
+            BungeeService bungeeService = new BungeeService(UUID.randomUUID(), port, ramValue, serviceName, group, dynamic);
+            HugeCloud.bungeeServices.add(bungeeService);
+            bungeeService.create();
+        }else {
+            BukkitService bukkitService = new BukkitService(UUID.randomUUID(), port, ramValue, serviceName, group, dynamic);
+            HugeCloud.bukkitServices.add(bukkitService);
+            bukkitService.create();
+        }
     }
 
     public void onList() {
-        File configsFolder = new File(System.getProperty("user.dir") + "/local/groups/configs");
+        File configsFolder = new File(System.getProperty("user.dir") + "/local/groups/");
         if (!configsFolder.exists() || !configsFolder.isDirectory()) {
             HugeCloud.getConsoleManager().sendMessage("Keine Gruppen gefunden.", MessageType.INFO);
             return;
@@ -174,54 +208,35 @@ public class groupCMD extends Command {
     public void onStart(String[] args) {
 
         String id = args[1];
-        BukkitService service = BukkitServiceSetup.getServiceByName(id);
-        service.start();
-
+        System.out.println(HugeCloud.bukkitServices);
+        if(CloudManager.getServiceByName(id) == null) {
+            if(CloudManager.getServiceBungeeByName(id) == null) {
+                HugeCloud.getConsoleManager().sendMessage("Es wurde kein Dienst mit der ID '" + id + "' gefunden.", MessageType.ERROR);
+                return;
+            }else {
+                BungeeService service = CloudManager.getServiceBungeeByName(id);
+                service.start();
+            }
+        }else {
+            BukkitService service = CloudManager.getServiceByName(id);
+            service.start();
+        }
     }
 
     public void onStop(String[] args) {
 
         String id = args[1];
-        BukkitService service = BukkitServiceSetup.getServiceByName(id);
-        service.stop();
-
-    }
-
-    public void onStartOld(String[] args) {
-        if (args.length < 2) {
-            HugeCloud.getConsoleManager().sendMessage("Usage: service start <serviceName>", MessageType.INFO);
-            return;
+        if(CloudManager.getServiceByName(id) == null) {
+            if(CloudManager.getServiceBungeeByName(id) == null) {
+                HugeCloud.getConsoleManager().sendMessage("Es wurde kein Dienst mit der ID '" + id + "' gefunden.", MessageType.ERROR);
+                return;
+            }else {
+                BungeeService service = CloudManager.getServiceBungeeByName(id);
+                service.stop();
+            }
+        }else {
+            BukkitService service = CloudManager.getServiceByName(id);
+            service.stop();
         }
-
-        String serviceName = args[1];
-        File serviceFolder = new File(System.getProperty("user.dir") + "/services/" + serviceName);
-        File jarFile = new File(serviceFolder, "server.jar");
-
-        if (!jarFile.exists()) {
-            HugeCloud.getConsoleManager().sendMessage("Service JAR not found for: " + serviceName, MessageType.ERROR);
-            return;
-        }
-
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder("java", "-Xmx1024M", "-Xms1024M", "-jar", jarFile.getAbsolutePath(), "nogui");
-            processBuilder.directory(serviceFolder);
-            processBuilder.inheritIO();
-            processBuilder.start();
-            HugeCloud.getConsoleManager().sendMessage("Service " + serviceName + " started successfully.", MessageType.INFO);
-        } catch (IOException e) {
-            HugeCloud.getConsoleManager().sendMessage("Failed to start service: " + e.getMessage(), MessageType.ERROR);
-            e.printStackTrace();
-        }
-    }
-
-
-    @Override
-    public List<String> getTabCompletion(String[] args) {
-        if (args.length == 1) {
-            return Arrays.asList("create", "list", "start");
-        } else if (args.length == 2 && args[0].equalsIgnoreCase("start")) {
-            return Arrays.asList("Service1", "Service2", "Service3");
-        }
-        return super.getTabCompletion(args);
     }
 }
