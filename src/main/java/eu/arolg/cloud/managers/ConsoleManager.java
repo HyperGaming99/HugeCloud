@@ -20,12 +20,16 @@ public class ConsoleManager {
     public LineReader createLineReader() {
         while (true) {
             try {
-                Terminal terminal = TerminalBuilder.builder().system(true).streams(System.in, System.out).encoding(StandardCharsets.UTF_8).dumb(true).build();
+                Terminal terminal = TerminalBuilder.builder()
+                        .system(true)
+                        .encoding(StandardCharsets.UTF_8)
+                        .build();
 
                 return LineReaderBuilder.builder().terminal(terminal)
                         .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
                         .option(LineReader.Option.AUTO_REMOVE_SLASH, false)
-                        .option(LineReader.Option.INSERT_TAB, false).build();
+                        .option(LineReader.Option.INSERT_TAB, false)
+                        .build();
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -33,6 +37,7 @@ public class ConsoleManager {
             System.out.println(ANSICodes.BRIGHT_RED + "HugeCloud" + ANSICodes.RESET + "  ! ");
         }
     }
+
 
     public void sendMessage(String message, MessageType type) {
         final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";

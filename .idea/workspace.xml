@@ -5,12 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60e6c07d-706f-4e62-a0ea-83d73ae508d0" name="Changes" comment="">
-      <change afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/command/clearCMD.java" afterDir="false" />
-      <change afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BukkitServiceSetup.java" afterDir="false" />
+      <change beforePath="H:/HugeCloudV1/.idea/workspace.xml" beforeDir="false" afterPath="H:/HugeCloudV1/.idea/workspace.xml" afterDir="false" />
       <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/HugeCloud.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/HugeCloud.java" afterDir="false" />
-      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/command/TestCMD.java" beforeDir="false" />
       <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/command/groupCMD.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/command/groupCMD.java" afterDir="false" />
-      <change beforePath="H:/HugeCloudV1/version-1.21.4.jar" beforeDir="false" />
+      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/managers/CommandManager.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/managers/CommandManager.java" afterDir="false" />
+      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/managers/ConsoleManager.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/managers/ConsoleManager.java" afterDir="false" />
+      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/Service.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/Service.java" afterDir="false" />
+      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BukkitService.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BukkitService.java" afterDir="false" />
+      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BukkitServiceSetup.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BukkitServiceSetup.java" afterDir="false" />
+      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BungeeService.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BungeeService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,7 +96,7 @@
       <option name="presentableId" value="Default" />
       <updated>1754596863031</updated>
       <workItem from="1754596863034" duration="75000" />
-      <workItem from="1754596949944" duration="16639000" />
+      <workItem from="1754596949944" duration="21838000" />
     </task>
     <servers />
   </component>

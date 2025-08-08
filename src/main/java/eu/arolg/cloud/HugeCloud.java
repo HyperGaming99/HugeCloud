@@ -1,15 +1,23 @@
 package eu.arolg.cloud;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import eu.arolg.cloud.command.groupCMD;
 import eu.arolg.cloud.managers.CloudManager;
 import eu.arolg.cloud.managers.CommandManager;
 import eu.arolg.cloud.managers.ConsoleManager;
+import eu.arolg.cloud.service.specific.BukkitService;
 import eu.arolg.cloud.utils.ANSICodes;
 import eu.arolg.cloud.utils.MessageType;
 import lombok.Getter;
 
+import java.io.File;
+import java.io.FileReader;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.UUID;
 
 public class HugeCloud {
 
@@ -21,6 +29,9 @@ public class HugeCloud {
 
     @Getter
     private static CloudManager cloudManager;
+
+
+    public static final List<BukkitService> bukkitServices = new ArrayList<>();
 
     public static void main(String[] args) {
         consoleManager = new ConsoleManager();
@@ -73,7 +84,7 @@ public class HugeCloud {
         Thread commandSystem = new Thread(getCommandManager().reading(), "COMMAND");
         commandSystem.start();
 
-
+        loadBukkitServices();
 
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -87,5 +98,51 @@ public class HugeCloud {
                 e.printStackTrace();
             }
         }));
+    }
+
+
+
+    public static void loadBukkitServices() {
+        File configsFolder = new File(System.getProperty("user.dir") + "/local/groups/configs");
+        if (!configsFolder.exists() || !configsFolder.isDirectory()) {
+            HugeCloud.getConsoleManager().sendMessage("Keine Gruppen gefunden.", MessageType.INFO);
+            return;
+        }
+
+        File[] configFiles = configsFolder.listFiles((dir, name) -> name.endsWith(".json"));
+        if (configFiles == null || configFiles.length == 0) {
+            HugeCloud.getConsoleManager().sendMessage("Keine Gruppen gefunden.", MessageType.INFO);
+            return;
+        }
+
+        HugeCloud.getConsoleManager().sendMessage("Dienste gefunden:", MessageType.INFO);
+        for (File configFile : configFiles) {
+            try (FileReader reader = new FileReader(configFile)) {
+                JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+
+                String id = json.get("id").getAsString();
+                UUID serviceId = UUID.fromString(id);
+                String name = json.get("name").getAsString();
+                int port = json.get("port").getAsInt();
+                int ram = json.get("ram").getAsInt();
+                String group = json.get("group").getAsString();
+                boolean dynamic = json.get("dynamic").getAsBoolean();
+                int maxPlayers = json.get("maxPlayers").getAsInt();
+
+                // → Optional: Speichere alles in ein Objekt, falls nötig
+                BukkitService bukkitService = new BukkitService(serviceId, port, ram,name, group, dynamic, maxPlayers);
+                bukkitServices.add(bukkitService);
+                System.out.println("BukkitService geladen: " + bukkitService);
+
+                HugeCloud.getConsoleManager().sendMessage(
+                        "- Dienst: " + id + " | Port: " + port + " | RAM: " + ram + "MB | Group: " + group +
+                                " | Dynamic: " + dynamic + " | MaxPlayers: " + maxPlayers,
+                        MessageType.INFO
+                );
+            } catch (Exception e) {
+                HugeCloud.getConsoleManager().sendMessage("Fehler beim Laden des Dienstes: " + configFile.getName(), MessageType.ERROR);
+                e.printStackTrace();
+            }
+        }
     }
 }

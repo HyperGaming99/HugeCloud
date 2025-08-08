@@ -35,11 +35,12 @@ public class BukkitServiceSetup {
         UUID serviceId = UUID.randomUUID();
         JsonObject serviceData = new JsonObject();
         serviceData.addProperty("id", serviceId.toString());
+        serviceData.addProperty("port", port);
         serviceData.addProperty("name", serviceName);
         serviceData.addProperty("ram", ram);
         serviceData.addProperty("group", group);
-        serviceData.addProperty("port", port);
-
+        serviceData.addProperty("dynamic", dynamic);
+        serviceData.addProperty("maxPlayers", 100);
         File configFile = new File(configsFolder, serviceName + ".json");
         try {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -78,5 +79,15 @@ public class BukkitServiceSetup {
             HugeCloud.getConsoleManager().sendMessage("Failed to download JAR file: " + e.getMessage(), MessageType.ERROR);
             e.printStackTrace();
         }
+    }
+
+
+    public static BukkitService getServiceByName(String name) {
+        for (BukkitService service : HugeCloud.bukkitServices) {
+            if (service.getName().equalsIgnoreCase(name)) {
+                return service;
+            }
+        }
+        return null;
     }
 }

@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import eu.arolg.cloud.service.ServiceState;
+import eu.arolg.cloud.service.specific.BukkitService;
 import eu.arolg.cloud.service.specific.BukkitServiceSetup;
 import eu.arolg.cloud.utils.ANSICodes;
 import eu.arolg.cloud.utils.MessageType;
@@ -28,6 +30,9 @@ public class groupCMD extends Command {
     public void execute(String[] args) {
         if (args.length == 0) {
             HugeCloud.getConsoleManager().sendMessage(" - list", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(" - start <groupName>", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(" - stop <groupName>", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(" - status <groupName>", MessageType.INFO);
             HugeCloud.getConsoleManager().sendMessage(" - create", MessageType.INFO);
             return;
         }
@@ -38,7 +43,13 @@ public class groupCMD extends Command {
             onList();
         } else if (args[0].equalsIgnoreCase("start")) {
             onStart(args);
-        } else {
+        } else if (args[0].equalsIgnoreCase("stop")) {
+            onStop(args);
+        }else if (args[0].equalsIgnoreCase("status")) {
+            BukkitService service = BukkitServiceSetup.getServiceByName(args[1]);
+            ServiceState state = service.getStatus();
+            HugeCloud.getConsoleManager().sendMessage("Status von " + service.getName() + ": " + state, MessageType.INFO);
+        }else {
             HugeCloud.getConsoleManager().sendMessage("Unknown subcommand: " + args[0], MessageType.ERROR);
         }
     }
@@ -135,7 +146,7 @@ public class groupCMD extends Command {
     }
 
     public void onList() {
-        File configsFolder = new File(System.getProperty("user.dir") + "/services/configs");
+        File configsFolder = new File(System.getProperty("user.dir") + "/local/groups/configs");
         if (!configsFolder.exists() || !configsFolder.isDirectory()) {
             HugeCloud.getConsoleManager().sendMessage("Keine Gruppen gefunden.", MessageType.INFO);
             return;
@@ -161,6 +172,22 @@ public class groupCMD extends Command {
     }
 
     public void onStart(String[] args) {
+
+        String id = args[1];
+        BukkitService service = BukkitServiceSetup.getServiceByName(id);
+        service.start();
+
+    }
+
+    public void onStop(String[] args) {
+
+        String id = args[1];
+        BukkitService service = BukkitServiceSetup.getServiceByName(id);
+        service.stop();
+
+    }
+
+    public void onStartOld(String[] args) {
         if (args.length < 2) {
             HugeCloud.getConsoleManager().sendMessage("Usage: service start <serviceName>", MessageType.INFO);
             return;
