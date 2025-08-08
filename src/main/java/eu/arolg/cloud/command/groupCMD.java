@@ -4,32 +4,33 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import eu.arolg.cloud.service.ServiceType;
+import eu.arolg.cloud.utils.ANSICodes;
 import eu.arolg.cloud.utils.MessageType;
 import eu.arolg.cloud.HugeCloud;
 import eu.arolg.cloud.utils.PortFinder;
 import org.jline.reader.LineReader;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class ServiceCMD extends Command {
+public class groupCMD extends Command {
 
-    public ServiceCMD() {
-        super("service", "srv");
+    public groupCMD() {
+        super("group");
     }
 
     @Override
     public void execute(String[] args) {
         if (args.length == 0) {
-            HugeCloud.getConsoleManager().sendMessage("Usage: service <create|list|start>", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(" - list", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(" - create", MessageType.INFO);
             return;
         }
+
         if (args[0].equalsIgnoreCase("create")) {
             onCreate(args);
         } else if (args[0].equalsIgnoreCase("list")) {
@@ -42,20 +43,62 @@ public class ServiceCMD extends Command {
     }
 
     public void onCreate(String[] args) {
-        HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
-
+        final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
         LineReader reader = HugeCloud.getConsoleManager().createLineReader();
 
-        // Prompt for service details
-        String serviceName = reader.readLine("Service Name: ");
-        String ram = reader.readLine("RAM (in MB): ");
-        String group = reader.readLine("Group: ");
+        String serviceName;
+        // Prompt for service name
+        while (true) {
+            HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            HugeCloud.getConsoleManager().sendMessage("Bitte geben Sie den Namen der Gruppe ein, die Sie erstellen möchten:", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessageLeer();
+
+            serviceName = reader.readLine(prefix + "Group setup » ");
+            if (serviceName.equalsIgnoreCase("exit")) {
+                HugeCloud.getConsoleManager().sendMessage("Setup abgebrochen.", MessageType.INFO);
+                return;
+            }
+            if (!serviceName.isBlank()) {
+                break;
+            }
+            HugeCloud.getConsoleManager().sendMessage("Der Gruppenname darf nicht leer sein.", MessageType.ERROR);
+        }
+
+        // Prompt for RAM
+        String ram;
+        while (true) {
+            HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            HugeCloud.getConsoleManager().sendMessage("Bitte geben Sie die Arbeitsspeichermenge in MB für die Gruppe ein:", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            ram = reader.readLine(prefix + "Group setup » ");
+            if (ram.equalsIgnoreCase("exit")) {
+                HugeCloud.getConsoleManager().sendMessage("Setup abgebrochen.", MessageType.INFO);
+                return;
+            }
+            try {
+                if (Integer.parseInt(ram) > 0) {
+                    break;
+                }
+            } catch (NumberFormatException e) {
+                HugeCloud.getConsoleManager().sendMessage("Bitte geben Sie eine gültige Zahl ein.", MessageType.ERROR);
+            }
+        }
+
 
         // Prompt for and validate port
         int port;
         while (true) {
             try {
-                String portInput = reader.readLine("Port: ");
+                HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+                HugeCloud.getConsoleManager().sendMessageLeer();
+                HugeCloud.getConsoleManager().sendMessage("Bitte geben Sie den Port an für die Gruppe.", MessageType.INFO);
+                HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+                HugeCloud.getConsoleManager().sendMessageLeer();
+                String portInput = reader.readLine(prefix + "Group setup » ");
                 port = Integer.parseInt(portInput);
                 if (PortFinder.available(port)) {
                     break;
@@ -68,14 +111,19 @@ public class ServiceCMD extends Command {
         }
 
         // Confirm details
-        HugeCloud.getConsoleManager().sendMessage("Service Name: " + serviceName, MessageType.INFO);
+        HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+        HugeCloud.getConsoleManager().sendMessageLeer();
+        HugeCloud.getConsoleManager().sendMessage("Bitte überprüfen Sie die folgenden Details:", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessageLeer();
+        HugeCloud.getConsoleManager().sendMessage("Name: " + serviceName, MessageType.INFO);
         HugeCloud.getConsoleManager().sendMessage("RAM: " + ram + " MB", MessageType.INFO);
-        HugeCloud.getConsoleManager().sendMessage("Group: " + group, MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage("Group: " + "ol", MessageType.INFO);
         HugeCloud.getConsoleManager().sendMessage("Port: " + port, MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessageLeer();
 
-        String confirmation = reader.readLine("Confirm creation? (yes/no): ");
+        String confirmation = reader.readLine(prefix + "Group setup » " + "Möchten Sie diese Gruppe erstellen? (yes/no): ");
         if (!confirmation.equalsIgnoreCase("yes") && !confirmation.equalsIgnoreCase("y")) {
-            HugeCloud.getConsoleManager().sendMessage("Service creation canceled.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Setup abgebrochen.", MessageType.INFO);
             return;
         }
 
@@ -99,14 +147,13 @@ public class ServiceCMD extends Command {
         serviceData.addProperty("id", serviceId.toString());
         serviceData.addProperty("name", serviceName);
         serviceData.addProperty("ram", ram);
-        serviceData.addProperty("group", group);
+        serviceData.addProperty("group", "ll");
         serviceData.addProperty("port", port);
 
         File configFile = new File(configsFolder, serviceName + ".json");
         try {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             Files.writeString(configFile.toPath(), gson.toJson(serviceData));
-            HugeCloud.getConsoleManager().sendMessage("Config file created: " + configFile.getAbsolutePath(), MessageType.INFO);
         } catch (Exception e) {
             HugeCloud.getConsoleManager().sendMessage("Failed to write config file: " + e.getMessage(), MessageType.ERROR);
             e.printStackTrace();
@@ -117,7 +164,6 @@ public class ServiceCMD extends Command {
         File eulaFile = new File(serviceFolder, "eula.txt");
         try {
             Files.writeString(eulaFile.toPath(), "eula=true");
-            HugeCloud.getConsoleManager().sendMessage("EULA file created: " + eulaFile.getAbsolutePath(), MessageType.INFO);
         } catch (IOException e) {
             HugeCloud.getConsoleManager().sendMessage("Failed to create EULA file: " + e.getMessage(), MessageType.ERROR);
             e.printStackTrace();
@@ -137,7 +183,7 @@ public class ServiceCMD extends Command {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
             }
 
-            HugeCloud.getConsoleManager().sendMessage("Service created successfully at: " + serviceFolder.getAbsolutePath(), MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Das Setup der Gruppe " + serviceName + " wurde erfolgreich abgeschlossen.", MessageType.INFO);
         } catch (Exception e) {
             HugeCloud.getConsoleManager().sendMessage("Failed to download JAR file: " + e.getMessage(), MessageType.ERROR);
             e.printStackTrace();
@@ -147,17 +193,17 @@ public class ServiceCMD extends Command {
     public void onList() {
         File configsFolder = new File(System.getProperty("user.dir") + "/services/configs");
         if (!configsFolder.exists() || !configsFolder.isDirectory()) {
-            HugeCloud.getConsoleManager().sendMessage("No services found.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Keine Gruppen gefunden.", MessageType.INFO);
             return;
         }
 
         File[] configFiles = configsFolder.listFiles((dir, name) -> name.endsWith(".json"));
         if (configFiles == null || configFiles.length == 0) {
-            HugeCloud.getConsoleManager().sendMessage("No services found.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Keine Gruppen gefunden.", MessageType.INFO);
             return;
         }
 
-        HugeCloud.getConsoleManager().sendMessage("Available Services:", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage("Dienste gefunden:", MessageType.INFO);
         for (File configFile : configFiles) {
             try (FileReader reader = new FileReader(configFile)) {
                 JsonObject serviceData = JsonParser.parseReader(reader).getAsJsonObject();

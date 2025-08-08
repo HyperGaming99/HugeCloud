@@ -3,7 +3,6 @@ package eu.arolg.cloud.managers;
 import eu.arolg.cloud.HugeCloud;
 import eu.arolg.cloud.command.Command;
 import eu.arolg.cloud.utils.ANSICodes;
-import eu.arolg.cloud.utils.CommandCompleter;
 import eu.arolg.cloud.utils.MessageType;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -29,12 +28,11 @@ public class CommandManager {
             @Override
             public void run() {
                 LineReader reader = LineReaderBuilder.builder()
-                        .completer(new CommandCompleter(CommandManager.this)) // Attach the completer
                         .build();
 
                 while (true) {
                     try {
-                        String s = reader.readLine(ANSICodes.BRIGHT_CYAN + "HugeCloud" + ANSICodes.RESET + " | ");
+                        String s = reader.readLine(ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ");
                         String[] input = s.split(" ");
                         if (commands.containsKey(input[0].toLowerCase())) {
                             List<String> args = new ArrayList<>();

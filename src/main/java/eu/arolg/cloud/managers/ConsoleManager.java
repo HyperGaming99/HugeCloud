@@ -35,7 +35,7 @@ public class ConsoleManager {
     }
 
     public void sendMessage(String message, MessageType type) {
-        final String prefix = ANSICodes.BRIGHT_CYAN + "HugeCloud" + ANSICodes.RESET + " | ";
+        final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
         final String info = "INFO: ";
         final String warn = ANSICodes.BRIGHT_YELLOW + "WARN: " + ANSICodes.RESET + ": ";
         final String error = ANSICodes.BRIGHT_RED + "ERROR: " + ANSICodes.RESET + ": ";
@@ -46,6 +46,10 @@ public class ConsoleManager {
             case ERROR -> System.out.println(prefix + error + message);
             default -> System.out.println(prefix + "UNKNOWN TYPE: " + message);
         }
+    }
+
+    public void sendMessageLeer() {
+        System.out.println(ANSICodes.RESET + " ");
     }
 
     public static void clearConsole(Terminal terminal) {
