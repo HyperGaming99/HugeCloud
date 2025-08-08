@@ -7,14 +7,15 @@ public abstract class Service {
     private final int port;
     private final UUID uniqueId;
     private final int ram;
+    private final String name;
     private final String group;
     private final boolean dynamic;
 
-
-    public Service(UUID id, int port, int ram, String group, boolean dynamic) {
+    public Service(UUID id, int port, int ram, String name , String group, boolean dynamic) {
         this.uniqueId = id;
         this.port = port;
         this.ram = ram;
+        this.name = name;
         this.group = group;
         this.dynamic = dynamic;
     }

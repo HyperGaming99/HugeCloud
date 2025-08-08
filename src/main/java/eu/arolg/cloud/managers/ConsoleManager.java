@@ -20,12 +20,16 @@ public class ConsoleManager {
     public LineReader createLineReader() {
         while (true) {
             try {
-                Terminal terminal = TerminalBuilder.builder().system(true).streams(System.in, System.out).encoding(StandardCharsets.UTF_8).dumb(true).build();
+                Terminal terminal = TerminalBuilder.builder()
+                        .system(true)
+                        .encoding(StandardCharsets.UTF_8)
+                        .build();
 
                 return LineReaderBuilder.builder().terminal(terminal)
                         .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
                         .option(LineReader.Option.AUTO_REMOVE_SLASH, false)
-                        .option(LineReader.Option.INSERT_TAB, false).build();
+                        .option(LineReader.Option.INSERT_TAB, false)
+                        .build();
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -34,8 +38,9 @@ public class ConsoleManager {
         }
     }
 
+
     public void sendMessage(String message, MessageType type) {
-        final String prefix = ANSICodes.BRIGHT_CYAN + "HugeCloud" + ANSICodes.RESET + " | ";
+        final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
         final String info = "INFO: ";
         final String warn = ANSICodes.BRIGHT_YELLOW + "WARN: " + ANSICodes.RESET + ": ";
         final String error = ANSICodes.BRIGHT_RED + "ERROR: " + ANSICodes.RESET + ": ";
@@ -46,6 +51,10 @@ public class ConsoleManager {
             case ERROR -> System.out.println(prefix + error + message);
             default -> System.out.println(prefix + "UNKNOWN TYPE: " + message);
         }
+    }
+
+    public void sendMessageLeer() {
+        System.out.println(ANSICodes.RESET + " ");
     }
 
     public static void clearConsole(Terminal terminal) {

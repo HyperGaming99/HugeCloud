@@ -7,8 +7,8 @@ import java.util.UUID;
 public class BungeeService extends Service {
 
 
-    public BungeeService(UUID id, int port, int ram, String group, boolean dynamic) {
-        super(id, port, ram, group, dynamic);
+    public BungeeService(UUID id, int port, int ram, String name, String group, boolean dynamic) {
+        super(id, port, ram, name, group, dynamic);
     }
 
     @Override
