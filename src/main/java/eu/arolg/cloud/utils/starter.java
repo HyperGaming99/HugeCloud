@@ -1,0 +1,189 @@
+package eu.arolg.cloud.utils;
+
+import eu.arolg.cloud.HugeCloud;
+import eu.arolg.cloud.command.groupCMD;
+import eu.arolg.cloud.service.ServiceState;
+import eu.arolg.cloud.service.specific.BukkitService;
+import eu.arolg.cloud.service.specific.BungeeService;
+import org.jline.reader.LineReader;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.Calendar;
+
+public class starter {
+    public static void onstart() {
+        if (System.getProperty("os.name").contains("Windows")) {
+            Field[] fields = ANSICodes.class.getDeclaredFields();
+            for (Field field : fields) {
+                if (field.getType().equals(String.class)) {
+                    try {
+                        field.setAccessible(true);
+                        field.set(ANSICodes.class, field.get(ANSICodes.class).toString().replace("\u001B", "\033"));
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        if (!new File(System.getProperty("user.dir") + "/local/").exists()) {
+            onInit();
+            return;
+        }
+
+        HugeCloud.getCommandManager().registerCommand(new eu.arolg.cloud.command.ShutdownCMD());
+        HugeCloud.getCommandManager().registerCommand(new groupCMD());
+        HugeCloud.getCommandManager().registerCommand(new eu.arolg.cloud.command.clearCMD());
+
+        Thread commandSystem = new Thread(HugeCloud.getCommandManager().reading(), "COMMAND");
+
+        groupsloader.loadBukkitServices();
+        groupsloader.loadBungeeServices();
+
+        HugeCloud.getConsoleManager().sendMessage("Starte HugeCloud...", MessageType.INFO);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler beim Starten der Cloud: " + e.getMessage(), MessageType.ERROR);
+            e.printStackTrace();
+        }
+        HugeCloud.getConsoleManager().sendMessage("HugeCloud erfolgreich gestartet!", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage("Lade Dienste...", MessageType.INFO);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler beim Laden der Dienste: " + e.getMessage(), MessageType.ERROR);
+            e.printStackTrace();
+        }
+        groupsloader.printServiceTable(HugeCloud.bukkitServices, HugeCloud.bungeeServices);
+        HugeCloud.getConsoleManager().sendMessage("Dienste erfolgreich geladen!", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage("Starte Command-System...", MessageType.INFO);
+        commandSystem.start();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler beim Starten des Command-Systems: " + e.getMessage(), MessageType.ERROR);
+            e.printStackTrace();
+        }
+        HugeCloud.getConsoleManager().sendMessage("Command-System erfolgreich gestartet!", MessageType.INFO);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler beim Warten: " + e.getMessage(), MessageType.ERROR);
+            e.printStackTrace();
+        }
+        HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+
+        String[] banner = {
+                "",
+                " _    _                      _____ _                 _ ",
+                "| |  | |                    / ____| |               | |",
+                "| |__| |_   _ _   _  ___   | |    | | ___  _   _  __| |",
+                "|  __  | | | | | | |/ _ \\  | |    | |/ _ \\| | | |/ _` |",
+                "| |  | | |_| | |_| |  __/  | |____| | (_) | |_| | (_| |",
+                "|_|  |_|\\__,_|\\__, |\\___|   \\_____|_|\\___/ \\__,_|\\__,_|",
+                "                __/ |                                  ",
+                "               |___/                                   ",
+                "",
+                "  © " + Calendar.getInstance().get(Calendar.YEAR) + "  HugeCloud System",
+                "  Made by Aro_LG",
+                "  Website: https://arolg.dev/",
+                ""
+        };
+
+        for (String line : banner) {
+            HugeCloud.getConsoleManager().sendMessage(line, MessageType.INFO);
+        }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            HugeCloud.getConsoleManager().sendMessage("Die Cloud wird heruntergefahren...", MessageType.INFO);
+            commandSystem.interrupt();
+            for (BukkitService service : HugeCloud.bukkitServices) {
+                if (service.getStatus() == ServiceState.ONLINE) {
+                    try {
+                        service.stop();
+                    } catch (Exception e) {
+                        HugeCloud.getConsoleManager().sendMessage("Fehler beim Stoppen des Dienstes " + service.getName() + ": " + e.getMessage(), MessageType.ERROR);
+                        e.printStackTrace();
+                    }
+                }
+            }
+            for (BungeeService service : HugeCloud.bungeeServices) {
+                if (service.getStatus() == ServiceState.ONLINE) {
+                    try {
+                        service.stop();
+                    } catch (Exception e) {
+                        HugeCloud.getConsoleManager().sendMessage("Fehler beim Stoppen des Dienstes " + service.getName() + ": " + e.getMessage(), MessageType.ERROR);
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            HugeCloud.getConsoleManager().sendMessage("Die Cloud wurde erfolgreich heruntergefahren!", MessageType.INFO);
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                HugeCloud.getConsoleManager().sendMessage("Fehler beim Herunterfahren der Cloud: " + e.getMessage(), MessageType.ERROR);
+                e.printStackTrace();
+            }
+        }));
+    }
+
+    public static void onInit() {
+        HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+        HugeCloud.getConsoleManager().sendMessageLeer();
+        HugeCloud.getConsoleManager().sendMessage("Herzlich Willkommen bei HugeCloud!", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage("Bitte warten Sie, während die Cloud initialisiert wird...", MessageType.INFO);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler bei der Initialisierung: " + e.getMessage(), MessageType.ERROR);
+            e.printStackTrace();
+        }
+        HugeCloud.getConsoleManager().sendMessage("Die Cloud wurde erfolgreich initialisiert!", MessageType.INFO);
+        HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+        String group;
+        while (true) {
+            HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            HugeCloud.getConsoleManager().sendMessage("AGBS & Minecraft Eula:", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Auswahlmöglichkeiten: 'yes' 'no'", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            LineReader reader = HugeCloud.getConsoleManager().createLineReader();
+            final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
+            group = reader.readLine(prefix + "HugeCloud Setup » ");
+            if (group.contains("no")) {
+                HugeCloud.getConsoleManager().sendMessage("Sie haben die AGBs und Eula abgelehnt. Das Setup wird abgebrochen.", MessageType.WARN);
+                HugeCloud.getConsoleManager().sendMessage("Bitte akzeptieren Sie die AGBs und Eula, um fortzufahren.", MessageType.ERROR);
+                System.exit(0);
+            }
+            if (!group.isBlank()) {
+                break;
+            }
+            HugeCloud.getConsoleManager().sendMessage("Sie müssen yes oder no schreiben es darf nicht leer sein!", MessageType.ERROR);
+        }
+
+        HugeCloud.getConsoleManager().sendMessage("Sie haben die AGBs und Eula akzeptiert.", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage("Bitte warten Sie, während die Cloud gestartet wird...", MessageType.INFO);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler beim Starten der Cloud: " + e.getMessage(), MessageType.ERROR);
+            e.printStackTrace();
+        }
+        //create folder
+        File localFolder = new File(System.getProperty("user.dir") + "/local");
+        if (!localFolder.exists() && !localFolder.mkdirs()) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler beim Erstellen des lokalen Ordners.", MessageType.ERROR);
+            return;
+        }
+        File groupsFolder = new File(System.getProperty("user.dir") + "/local/groups");
+        if (!groupsFolder.exists() && !groupsFolder.mkdirs()) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler beim Erstellen des Gruppenordners.", MessageType.ERROR);
+            return;
+        }
+
+        onstart();
+    }
+}
