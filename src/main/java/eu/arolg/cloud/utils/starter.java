@@ -7,8 +7,9 @@ import eu.arolg.cloud.service.specific.BukkitService;
 import eu.arolg.cloud.service.specific.BungeeService;
 import org.jline.reader.LineReader;
 
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.Calendar;
 
 public class starter {
@@ -27,7 +28,11 @@ public class starter {
             }
         }
         if (!new File(System.getProperty("user.dir") + "/local/").exists()) {
-            onInit();
+            try {
+                onInit();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             return;
         }
 
@@ -129,7 +134,7 @@ public class starter {
         }));
     }
 
-    public static void onInit() {
+    public static void onInit() throws IOException {
         HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
         HugeCloud.getConsoleManager().sendMessageLeer();
         HugeCloud.getConsoleManager().sendMessage("Herzlich Willkommen bei HugeCloud!", MessageType.INFO);
@@ -182,6 +187,25 @@ public class starter {
         if (!groupsFolder.exists() && !groupsFolder.mkdirs()) {
             HugeCloud.getConsoleManager().sendMessage("Fehler beim Erstellen des Gruppenordners.", MessageType.ERROR);
             return;
+        }
+
+        File templateFolder = new File(System.getProperty("user.dir") + "/templates");
+        if (!templateFolder.exists() && !templateFolder.mkdirs()) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler beim Erstellen des templates Ordners.", MessageType.ERROR);
+            return;
+        }
+
+        String downloadUrl = "https://hugecloud.arolg.dev/HugeCloud-BungeeMaster-1.0.jar";
+        File jarFile = new File(templateFolder, "HugeCloud-Master.jar");
+
+        try (var in = new BufferedInputStream(new URL(downloadUrl).openStream());
+             var fileOutputStream = new FileOutputStream(jarFile)) {
+
+            byte[] dataBuffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
         }
 
         onstart();

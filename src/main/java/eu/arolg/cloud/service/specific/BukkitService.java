@@ -8,10 +8,7 @@ import eu.arolg.cloud.service.Service;
 import eu.arolg.cloud.service.ServiceState;
 import eu.arolg.cloud.utils.MessageType;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.UUID;
@@ -26,6 +23,8 @@ public class BukkitService extends Service {
     private  ServiceState status;
 
     private Process process;
+    private BufferedWriter processWriter;
+
 
     public BukkitService(UUID id, int port, int ram, String name, String group, boolean dynamic) {
         super(id, port, ram, name, group, dynamic);
@@ -66,6 +65,8 @@ public class BukkitService extends Service {
             processBuilder.directory(serviceFolder);
             processBuilder.redirectErrorStream(true);
             process = processBuilder.start();
+            processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+
             HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist gestartet.", MessageType.INFO);
         } catch (IOException e) {
             HugeCloud.getConsoleManager().sendMessage("Failed to start service: " + e.getMessage(), MessageType.ERROR);
@@ -73,6 +74,17 @@ public class BukkitService extends Service {
         }
     }
 
+    @Override
+    public void restart() {
+        if (status != ServiceState.ONLINE) {
+            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist nicht online.", MessageType.WARN);
+            return;
+        }
+
+        stop();
+        start();
+        HugeCloud.getConsoleManager().sendMessage("Group " + name + " wurde neu gestartet.", MessageType.INFO);
+    }
 
     @Override
     public void stop() {
@@ -158,6 +170,20 @@ public class BukkitService extends Service {
             }
         }else {
 
+        }
+    }
+
+    public void sendCommand(String command) {
+        if (processWriter != null) {
+            try {
+                processWriter.write(command);
+                processWriter.newLine();
+                processWriter.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            HugeCloud.getConsoleManager().sendMessage("No running process to send command.", MessageType.ERROR);
         }
     }
 
