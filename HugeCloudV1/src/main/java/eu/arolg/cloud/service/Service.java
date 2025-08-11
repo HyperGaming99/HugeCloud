@@ -21,6 +21,7 @@ public abstract class Service {
     }
 
     public abstract void start();
+    public abstract void restart();
     public abstract void stop();
     public abstract void create();
 }

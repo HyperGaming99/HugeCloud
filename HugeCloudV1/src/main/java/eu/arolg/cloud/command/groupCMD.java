@@ -14,6 +14,7 @@ import eu.arolg.cloud.utils.PortFinder;
 import org.jline.reader.LineReader;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class groupCMD extends Command {
@@ -29,6 +30,7 @@ public class groupCMD extends Command {
             HugeCloud.getConsoleManager().sendMessage(" - start <groupName>", MessageType.INFO);
             HugeCloud.getConsoleManager().sendMessage(" - stop <groupName>", MessageType.INFO);
             HugeCloud.getConsoleManager().sendMessage(" - status <groupName>", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(" - restart <groupName>", MessageType.INFO);
             HugeCloud.getConsoleManager().sendMessage(" - create", MessageType.INFO);
             return;
         }
@@ -45,7 +47,12 @@ public class groupCMD extends Command {
             BukkitService service = CloudManager.getServiceByName(args[1]);
             ServiceState state = service.getStatus();
             HugeCloud.getConsoleManager().sendMessage("Status von " + service.getName() + ": " + state, MessageType.INFO);
-        }else {
+        }else  if(args[0].equalsIgnoreCase("restart")) {
+            onRestart(args);
+        }else if (args[0].equalsIgnoreCase("command")) {
+            onCommand(args);
+        }
+        else {
             HugeCloud.getConsoleManager().sendMessage("Unknown subcommand: " + args[0], MessageType.ERROR);
         }
     }
@@ -167,7 +174,6 @@ public class groupCMD extends Command {
         boolean dynamic = true;
 
         int ramValue = Integer.parseInt(ram);
-        //is proxy
         if (group.contains("proxy")) {
             BungeeService bungeeService = new BungeeService(UUID.randomUUID(), port, ramValue, serviceName, group, dynamic);
             HugeCloud.bungeeServices.add(bungeeService);
@@ -208,7 +214,6 @@ public class groupCMD extends Command {
     public void onStart(String[] args) {
 
         String id = args[1];
-        System.out.println(HugeCloud.bukkitServices);
         if(CloudManager.getServiceByName(id) == null) {
             if(CloudManager.getServiceBungeeByName(id) == null) {
                 HugeCloud.getConsoleManager().sendMessage("Es wurde kein Dienst mit der ID '" + id + "' gefunden.", MessageType.ERROR);
@@ -220,6 +225,23 @@ public class groupCMD extends Command {
         }else {
             BukkitService service = CloudManager.getServiceByName(id);
             service.start();
+        }
+    }
+
+    public void onRestart(String[] args) {
+
+        String id = args[1];
+        if(CloudManager.getServiceByName(id) == null) {
+            if(CloudManager.getServiceBungeeByName(id) == null) {
+                HugeCloud.getConsoleManager().sendMessage("Es wurde kein Dienst mit der ID '" + id + "' gefunden.", MessageType.ERROR);
+                return;
+            }else {
+                BungeeService service = CloudManager.getServiceBungeeByName(id);
+                service.restart();
+            }
+        }else {
+            BukkitService service = CloudManager.getServiceByName(id);
+            service.restart();
         }
     }
 
@@ -237,6 +259,24 @@ public class groupCMD extends Command {
         }else {
             BukkitService service = CloudManager.getServiceByName(id);
             service.stop();
+        }
+    }
+
+    public void onCommand(String[] args) {
+
+        String id = args[1];
+        if(CloudManager.getServiceByName(id) == null) {
+            if(CloudManager.getServiceBungeeByName(id) == null) {
+                HugeCloud.getConsoleManager().sendMessage("Es wurde kein Dienst mit der ID '" + id + "' gefunden.", MessageType.ERROR);
+                return;
+            }else {
+                HugeCloud.getConsoleManager().sendMessage("Bitte geben Sie den Befehl ein, den Sie an den Dienst senden möchten:", MessageType.INFO);
+            }
+        }else {
+            BukkitService service = CloudManager.getServiceByName(id);
+            String commandToSend = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+            service.sendCommand(commandToSend);
+
         }
     }
 }
