@@ -6,12 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="60e6c07d-706f-4e62-a0ea-83d73ae508d0" name="Changes" comment="">
       <change beforePath="H:/HugeCloudV1/.idea/workspace.xml" beforeDir="false" afterPath="H:/HugeCloudV1/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/command/groupCMD.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/command/groupCMD.java" afterDir="false" />
-      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/Service.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/Service.java" afterDir="false" />
-      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/ServiceState.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/ServiceState.java" afterDir="false" />
-      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BukkitService.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BukkitService.java" afterDir="false" />
-      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BungeeService.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/service/specific/BungeeService.java" afterDir="false" />
-      <change beforePath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/utils/starter.java" beforeDir="false" afterPath="H:/HugeCloudV1/src/main/java/eu/arolg/cloud/utils/starter.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,7 +49,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "dev",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "H:/HugeCloudV1",
+    "last_opened_file_path": "H:/HugeCloud-BungeeMaster",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -102,6 +96,7 @@
       <workItem from="1754596863034" duration="75000" />
       <workItem from="1754596949944" duration="21838000" />
       <workItem from="1754664695203" duration="24271000" />
+      <workItem from="1754912586181" duration="2814000" />
     </task>
     <servers />
   </component>
