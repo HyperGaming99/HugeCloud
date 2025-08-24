@@ -1,0 +1,4 @@
+name: HugeCloudSManager
+version: '1.0.1'
+main: dev.arolg.hugeCloudSManager.HugeCloudSManager
+api-version: '1.21'
