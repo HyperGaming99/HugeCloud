@@ -243,7 +243,7 @@ public class groupCMD extends Command {
             if(CloudManager.getServiceBungeeByName(id) == null) {
                 HugeCloud.getConsoleManager().sendMessage("Es wurde kein Dienst mit der ID '" + id + "' gefunden.", MessageType.ERROR);
                 return;
-            }else {
+            } else {
                 BungeeTask service = CloudManager.getServiceBungeeByName(id);
                 service.start();
             }
