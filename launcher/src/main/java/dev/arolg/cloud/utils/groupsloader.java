@@ -27,7 +27,6 @@ public class groupsloader {
                 JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
 
                 String id = json.get("id").getAsString();
-                UUID serviceId = UUID.fromString(id);
                 String name = json.get("name").getAsString();
                 int port = json.get("port").getAsInt();
                 int ram = json.get("ram").getAsInt();
@@ -38,7 +37,7 @@ public class groupsloader {
                     continue;
                 }
 
-                BukkitTask bukkitService = new BukkitTask(serviceId, port, ram,name, group, dynamic);
+                BukkitTask bukkitService = new BukkitTask(id, port, ram,name, group, dynamic);
                 HugeCloud.bukkitServices.add(bukkitService);
                 HugeCloud.loadedServices.add(bukkitService);
             } catch (Exception e) {
@@ -63,7 +62,6 @@ public class groupsloader {
                 JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
 
                 String id = json.get("id").getAsString();
-                UUID serviceId = UUID.fromString(id);
                 String name = json.get("name").getAsString();
                 int port = json.get("port").getAsInt();
                 int ram = json.get("ram").getAsInt();
@@ -73,7 +71,7 @@ public class groupsloader {
                     return;
                 }
 
-                BungeeTask bungeeService = new BungeeTask(serviceId, port, ram,name, group, dynamic);
+                BungeeTask bungeeService = new BungeeTask(id, port, ram,name, group, dynamic);
                 HugeCloud.bungeeTasks.add(bungeeService);
                 HugeCloud.BungeeTasks.add(bungeeService);
             } catch (Exception e) {

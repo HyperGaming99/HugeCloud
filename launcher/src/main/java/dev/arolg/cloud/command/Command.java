@@ -2,6 +2,7 @@ package dev.arolg.cloud.command;
 
 import lombok.Getter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public abstract class Command {
     public List<String> getTabCompletion(String[] args) {
         return new ArrayList<>(); // Standardmäßig keine Vorschläge
     }
-    public void execute(String[] args) {
+    public void execute(String[] args) throws IOException, InterruptedException {
 
     }
 }

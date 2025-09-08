@@ -196,6 +196,89 @@ public class starter {
         }
 
         HugeCloud.getConsoleManager().sendMessage("Sie haben die AGBs und Eula akzeptiert.", MessageType.INFO);
+
+        //Pelican Api Key dieser muss volle Admin rechte haben
+        HugeCloud.getConsoleManager().sendMessage("Bitte warten Sie einen Moment...", MessageType.INFO);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            HugeCloud.getConsoleManager().sendMessage("Fehler bei der Initialisierung: " + e.getMessage(), MessageType.ERROR);
+            e.printStackTrace();
+        }
+
+        String apiKey;
+        while (true) {
+            HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            HugeCloud.getConsoleManager().sendMessage("Pelican API Key:", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Der API Key muss volle Admin Rechte haben!", MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            LineReader reader = HugeCloud.getConsoleManager().createLineReader();
+            final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
+            apiKey = reader.readLine(prefix + "HugeCloud Setup » ");
+            if (apiKey.contains("exit")) {
+                HugeCloud.getConsoleManager().sendMessage("Das Setup wird abgebrochen.", MessageType.WARN);
+                System.exit(0);
+            }
+            if (!apiKey.isBlank()) {
+                break;
+            }
+            HugeCloud.getConsoleManager().sendMessage("Der API Key darf nicht leer sein!", MessageType.ERROR);
+        }
+
+        String clientApiKey;
+        while (true) {
+            HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            HugeCloud.getConsoleManager().sendMessage("Pelican Client API Key:", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Der Client API Key muss man User mit der ID 1 sein!", MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            LineReader reader = HugeCloud.getConsoleManager().createLineReader();
+            final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
+            clientApiKey = reader.readLine(prefix + "HugeCloud Setup » ");
+            if (clientApiKey.contains("exit")) {
+                HugeCloud.getConsoleManager().sendMessage("Das Setup wird abgebrochen.", MessageType.WARN);
+                System.exit(0);
+            }
+            if (!clientApiKey.isBlank()) {
+                break;
+            }
+            HugeCloud.getConsoleManager().sendMessage("Der Client API Key darf nicht leer sein!", MessageType.ERROR);
+        }
+
+        ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
+        config.setApiKey(apiKey);
+        config.setClientAPIKey(clientApiKey);
+
+
+        String url;
+
+        while (true) {
+            HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            HugeCloud.getConsoleManager().sendMessage("Pelican URL:", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage("Die URL muss auf http:// oder https:// enden!", MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessageLeer();
+            LineReader reader = HugeCloud.getConsoleManager().createLineReader();
+            final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
+            url = reader.readLine(prefix + "HugeCloud Setup » ");
+            if (url.contains("exit")) {
+                HugeCloud.getConsoleManager().sendMessage("Das Setup wird abgebrochen.", MessageType.WARN);
+                System.exit(0);
+            }
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                break;
+            }
+            HugeCloud.getConsoleManager().sendMessage("Die URL muss auf http:// oder https:// enden!", MessageType.ERROR);
+        }
+
+        config.setUrl(url);
+
+        HugeCloud.getConfigManager().saveConfig();
+
         HugeCloud.getConsoleManager().sendMessage("Bitte warten Sie, während die Cloud gestartet wird...", MessageType.INFO);
         try {
             Thread.sleep(1000);
