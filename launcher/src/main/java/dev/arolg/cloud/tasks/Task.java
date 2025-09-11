@@ -24,5 +24,5 @@ public abstract class Task {
     public abstract void start() throws IOException, InterruptedException;
     public abstract void restart() throws IOException, InterruptedException;
     public abstract void stop() throws IOException, InterruptedException;
-    public abstract void create(String version) throws IOException, InterruptedException;
+    public abstract void create(String version) throws Exception;
 }

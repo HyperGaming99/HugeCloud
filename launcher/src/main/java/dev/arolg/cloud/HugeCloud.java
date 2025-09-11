@@ -7,6 +7,7 @@ import dev.arolg.cloud.managers.ConsoleManager;
 import dev.arolg.cloud.tasks.specific.BukkitTask;
 import dev.arolg.cloud.tasks.specific.BungeeTask;
 import dev.arolg.cloud.utils.ConfigManager;
+import dev.arolg.cloud.utils.LanguageManager;
 import dev.arolg.cloud.utils.starter;
 import lombok.Getter;
 
@@ -40,6 +41,7 @@ public class HugeCloud {
         configManager = new ConfigManager();
         configManager.loadConfig();
 
+        LanguageManager.loadLanguage();
 
 
         starter.onstart();

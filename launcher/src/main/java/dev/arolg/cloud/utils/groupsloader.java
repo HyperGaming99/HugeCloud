@@ -41,7 +41,7 @@ public class groupsloader {
                 HugeCloud.bukkitServices.add(bukkitService);
                 HugeCloud.loadedServices.add(bukkitService);
             } catch (Exception e) {
-                HugeCloud.getConsoleManager().sendMessage("Fehler beim Laden des Dienstes: " + configFile.getName(), MessageType.ERROR);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("error_loading_service") + ": " + configFile.getName(), MessageType.ERROR);
                 e.printStackTrace();
             }
         }
@@ -75,7 +75,7 @@ public class groupsloader {
                 HugeCloud.bungeeTasks.add(bungeeService);
                 HugeCloud.BungeeTasks.add(bungeeService);
             } catch (Exception e) {
-                HugeCloud.getConsoleManager().sendMessage("Fehler beim Laden des Dienstes: " + configFile.getName(), MessageType.ERROR);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("error_loading_service") + ": " + configFile.getName(), MessageType.ERROR);
                 e.printStackTrace();
             }
         }
@@ -90,7 +90,8 @@ public class groupsloader {
         System.out.println(separator);
 
         if (services.isEmpty() && bungeeServices.isEmpty()) {
-            System.out.println("| Keine Dienste gefunden.              |       |        |                 |          |          |");
+            String noServicesMessage = LanguageManager.getMessage("no_services_found");
+            System.out.println("| "+noServicesMessage+".              |       |        |                 |          |          |");
             System.out.println(separator);
             return;
         }
@@ -103,7 +104,7 @@ public class groupsloader {
                     service.getRam() + "MB",
                     service.getName(),
                     service.getGroup(),
-                    service.isDynamic() ? "Ja" : "Nein"
+                    service.isDynamic() ? LanguageManager.getMessage("yes") : LanguageManager.getMessage("no")
             );
         }
         for (BungeeTask service : bungeeServices) {
@@ -114,7 +115,7 @@ public class groupsloader {
                     service.getRam() + "MB",
                     service.getName(),
                     service.getGroup(),
-                    service.isDynamic() ? "Ja" : "Nein"
+                    service.isDynamic() ? LanguageManager.getMessage("yes") : LanguageManager.getMessage("no")
             );
         }
         System.out.println(separator);

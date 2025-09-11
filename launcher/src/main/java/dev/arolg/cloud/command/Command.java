@@ -23,7 +23,7 @@ public abstract class Command {
     public List<String> getTabCompletion(String[] args) {
         return new ArrayList<>(); // Standardmäßig keine Vorschläge
     }
-    public void execute(String[] args) throws IOException, InterruptedException {
+    public void execute(String[] args) throws Exception {
 
     }
 }

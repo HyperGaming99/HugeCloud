@@ -50,36 +50,37 @@ public class starter {
         groupsloader.loadBukkitServices();
         groupsloader.loadBungeeServices();
 
-        HugeCloud.getConsoleManager().sendMessage("Starte HugeCloud...", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.starting"), MessageType.INFO);
+        //HugeCloud.getConsoleManager().sendMessage("Starte HugeCloud...", MessageType.INFO);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler beim Starten der Cloud: " + e.getMessage(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.starting.error", e.getMessage()), MessageType.ERROR);
             e.printStackTrace();
         }
-        HugeCloud.getConsoleManager().sendMessage("HugeCloud erfolgreich gestartet!", MessageType.INFO);
-        HugeCloud.getConsoleManager().sendMessage("Lade Dienste...", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.starting.success"), MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.loading.services"), MessageType.INFO);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler beim Laden der Dienste: " + e.getMessage(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.loading.services.error", e.getMessage()), MessageType.ERROR);
             e.printStackTrace();
         }
         groupsloader.printServiceTable(HugeCloud.bukkitServices, HugeCloud.bungeeTasks);
-        HugeCloud.getConsoleManager().sendMessage("Dienste erfolgreich geladen!", MessageType.INFO);
-        HugeCloud.getConsoleManager().sendMessage("Starte Command-System...", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.loading.services.success"), MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.starting.commandsystem"), MessageType.INFO);
         commandSystem.start();
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler beim Starten des Command-Systems: " + e.getMessage(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.starting.commandsystem.error", e.getMessage()), MessageType.ERROR);
             e.printStackTrace();
         }
-        HugeCloud.getConsoleManager().sendMessage("Command-System erfolgreich gestartet!", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.starting.commandsystem.success"), MessageType.INFO);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler beim Warten: " + e.getMessage(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.startup.error", e.getMessage()), MessageType.ERROR);
             e.printStackTrace();
         }
         HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
@@ -106,14 +107,14 @@ public class starter {
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            HugeCloud.getConsoleManager().sendMessage("Die Cloud wird heruntergefahren...", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.shutdown.start"), MessageType.INFO);
             commandSystem.interrupt();
             for (BukkitTask service : HugeCloud.bukkitServices) {
                 if (service.getStatus() == TaskState.ONLINE) {
                     try {
                         service.stop();
                     } catch (Exception e) {
-                        HugeCloud.getConsoleManager().sendMessage("Fehler beim Stoppen des Dienstes " + service.getName() + ": " + e.getMessage(), MessageType.ERROR);
+                        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.shutdown.error", service.getName(), e.getMessage()), MessageType.ERROR);
                         e.printStackTrace();
                     }
                 }
@@ -123,17 +124,17 @@ public class starter {
                     try {
                         service.stop();
                     } catch (Exception e) {
-                        HugeCloud.getConsoleManager().sendMessage("Fehler beim Stoppen des Dienstes " + service.getName() + ": " + e.getMessage(), MessageType.ERROR);
+                        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.shutdown.error", service.getName(), e.getMessage()), MessageType.ERROR);
                         e.printStackTrace();
                     }
                 }
             }
 
-            HugeCloud.getConsoleManager().sendMessage("Die Cloud wurde erfolgreich heruntergefahren!", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.shutdown.success"), MessageType.INFO);
             try {
                 Thread.sleep(1500);
             } catch (InterruptedException e) {
-                HugeCloud.getConsoleManager().sendMessage("Fehler beim Herunterfahren der Cloud: " + e.getMessage(), MessageType.ERROR);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.shutdown.finalerror", e.getMessage()), MessageType.ERROR);
                 e.printStackTrace();
             }
 
@@ -142,7 +143,7 @@ public class starter {
                     try {
                         service.start();
                     } catch (Exception e) {
-                        HugeCloud.getConsoleManager().sendMessage("Fehler beim Starten des Dienstes " + service.getName() + ": " + e.getMessage(), MessageType.ERROR);
+                        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.startup.error", service.getName(), e.getMessage()), MessageType.ERROR);
                         e.printStackTrace();
                     }
                 }
@@ -152,7 +153,7 @@ public class starter {
                     try {
                         service.start();
                     } catch (Exception e) {
-                        HugeCloud.getConsoleManager().sendMessage("Fehler beim Starten des Dienstes " + service.getName() + ": " + e.getMessage(), MessageType.ERROR);
+                        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.startup.error", service.getName(), e.getMessage()), MessageType.ERROR);
                         e.printStackTrace();
                     }
                 }
@@ -163,46 +164,46 @@ public class starter {
     public static void onInit() throws IOException {
         HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
         HugeCloud.getConsoleManager().sendMessageLeer();
-        HugeCloud.getConsoleManager().sendMessage("Herzlich Willkommen bei HugeCloud!", MessageType.INFO);
-        HugeCloud.getConsoleManager().sendMessage("Bitte warten Sie, während die Cloud initialisiert wird...", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.welcome"), MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.start"), MessageType.INFO);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler bei der Initialisierung: " + e.getMessage(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.error", e.getMessage()), MessageType.ERROR);
             e.printStackTrace();
         }
-        HugeCloud.getConsoleManager().sendMessage("Die Cloud wurde erfolgreich initialisiert!", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.agree"), MessageType.INFO);
         HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
         String group;
         while (true) {
             HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
             HugeCloud.getConsoleManager().sendMessageLeer();
-            HugeCloud.getConsoleManager().sendMessage("AGBS & Minecraft Eula:", MessageType.INFO);
-            HugeCloud.getConsoleManager().sendMessage("Auswahlmöglichkeiten: 'yes' 'no'", MessageType.INFO);
-            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.agree"), MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.agree.yesno"), MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.agree.exit"), MessageType.INFO);
             HugeCloud.getConsoleManager().sendMessageLeer();
             LineReader reader = HugeCloud.getConsoleManager().createLineReader();
             final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
-            group = reader.readLine(prefix + "HugeCloud Setup » ");
+            group = reader.readLine(prefix + LanguageManager.getMessage("hugecloud.setup") + " » ");
             if (group.contains("no")) {
-                HugeCloud.getConsoleManager().sendMessage("Sie haben die AGBs und Eula abgelehnt. Das Setup wird abgebrochen.", MessageType.WARN);
-                HugeCloud.getConsoleManager().sendMessage("Bitte akzeptieren Sie die AGBs und Eula, um fortzufahren.", MessageType.ERROR);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.agree.decline"), MessageType.ERROR);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.agree.exit"), MessageType.INFO);
                 System.exit(0);
             }
             if (!group.isBlank()) {
                 break;
             }
-            HugeCloud.getConsoleManager().sendMessage("Sie müssen yes oder no schreiben es darf nicht leer sein!", MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.agree.error"), MessageType.ERROR);
         }
 
-        HugeCloud.getConsoleManager().sendMessage("Sie haben die AGBs und Eula akzeptiert.", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.agree.thanks"), MessageType.INFO);
 
         //Pelican Api Key dieser muss volle Admin rechte haben
-        HugeCloud.getConsoleManager().sendMessage("Bitte warten Sie einen Moment...", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.api"), MessageType.INFO);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler bei der Initialisierung: " + e.getMessage(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.api.error", e.getMessage()), MessageType.ERROR);
             e.printStackTrace();
         }
 
@@ -210,42 +211,42 @@ public class starter {
         while (true) {
             HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
             HugeCloud.getConsoleManager().sendMessageLeer();
-            HugeCloud.getConsoleManager().sendMessage("Pelican API Key:", MessageType.INFO);
-            HugeCloud.getConsoleManager().sendMessage("Der API Key muss volle Admin Rechte haben!", MessageType.WARN);
-            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.apikey"), MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.apikey.warn"), MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.apikey.exit"), MessageType.INFO);
             HugeCloud.getConsoleManager().sendMessageLeer();
             LineReader reader = HugeCloud.getConsoleManager().createLineReader();
             final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
-            apiKey = reader.readLine(prefix + "HugeCloud Setup » ");
+            apiKey = reader.readLine(prefix + LanguageManager.getMessage("hugecloud.setup") + " » ");
             if (apiKey.contains("exit")) {
-                HugeCloud.getConsoleManager().sendMessage("Das Setup wird abgebrochen.", MessageType.WARN);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.apikey.exit"), MessageType.WARN);
                 System.exit(0);
             }
             if (!apiKey.isBlank()) {
                 break;
             }
-            HugeCloud.getConsoleManager().sendMessage("Der API Key darf nicht leer sein!", MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.apikey.error"), MessageType.ERROR);
         }
 
         String clientApiKey;
         while (true) {
             HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
             HugeCloud.getConsoleManager().sendMessageLeer();
-            HugeCloud.getConsoleManager().sendMessage("Pelican Client API Key:", MessageType.INFO);
-            HugeCloud.getConsoleManager().sendMessage("Der Client API Key muss man User mit der ID 1 sein!", MessageType.WARN);
-            HugeCloud.getConsoleManager().sendMessage("Geben Sie 'exit' ein, um das Setup zu verlassen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.clientapikey"), MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.clientapikey.warn"), MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.clientapikey.exit"), MessageType.INFO);
             HugeCloud.getConsoleManager().sendMessageLeer();
             LineReader reader = HugeCloud.getConsoleManager().createLineReader();
             final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
-            clientApiKey = reader.readLine(prefix + "HugeCloud Setup » ");
+            clientApiKey = reader.readLine(prefix + LanguageManager.getMessage("hugecloud.setup") + " » ");
             if (clientApiKey.contains("exit")) {
-                HugeCloud.getConsoleManager().sendMessage("Das Setup wird abgebrochen.", MessageType.WARN);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.clientapikey.exit"), MessageType.WARN);
                 System.exit(0);
             }
             if (!clientApiKey.isBlank()) {
                 break;
             }
-            HugeCloud.getConsoleManager().sendMessage("Der Client API Key darf nicht leer sein!", MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.clientapikey.error"), MessageType.ERROR);
         }
 
         ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
@@ -264,43 +265,43 @@ public class starter {
             HugeCloud.getConsoleManager().sendMessageLeer();
             LineReader reader = HugeCloud.getConsoleManager().createLineReader();
             final String prefix = ANSICodes.BRIGHT_CYAN + "hugecloud@v1 " + ANSICodes.RESET + " » ";
-            url = reader.readLine(prefix + "HugeCloud Setup » ");
+            url = reader.readLine(prefix + LanguageManager.getMessage("hugecloud.setup") + " » ");
             if (url.contains("exit")) {
-                HugeCloud.getConsoleManager().sendMessage("Das Setup wird abgebrochen.", MessageType.WARN);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.apikey.exit"), MessageType.WARN);
                 System.exit(0);
             }
             if (url.startsWith("http://") || url.startsWith("https://")) {
                 break;
             }
-            HugeCloud.getConsoleManager().sendMessage("Die URL muss auf http:// oder https:// enden!", MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.url.error"), MessageType.ERROR);
         }
 
         config.setUrl(url);
 
         HugeCloud.getConfigManager().saveConfig();
 
-        HugeCloud.getConsoleManager().sendMessage("Bitte warten Sie, während die Cloud gestartet wird...", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.success"), MessageType.INFO);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler beim Starten der Cloud: " + e.getMessage(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.success.error", e.getMessage()), MessageType.ERROR);
             e.printStackTrace();
         }
         //create folder
         File localFolder = new File(System.getProperty("user.dir") + "/local");
         if (!localFolder.exists() && !localFolder.mkdirs()) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler beim Erstellen des lokalen Ordners.", MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.local.error"), MessageType.ERROR);
             return;
         }
         File groupsFolder = new File(System.getProperty("user.dir") + "/local/groups");
         if (!groupsFolder.exists() && !groupsFolder.mkdirs()) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler beim Erstellen des Gruppenordners.", MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.groups.error"), MessageType.ERROR);
             return;
         }
 
         File templateFolder = new File(System.getProperty("user.dir") + "/templates");
         if (!templateFolder.exists() && !templateFolder.mkdirs()) {
-            HugeCloud.getConsoleManager().sendMessage("Fehler beim Erstellen des templates Ordners.", MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.init.templates.error"), MessageType.ERROR);
             return;
         }
 

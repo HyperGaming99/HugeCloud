@@ -3,6 +3,7 @@ package dev.arolg.cloud.tasks.specific;
 import com.google.gson.*;
 import dev.arolg.cloud.HugeCloud;
 import dev.arolg.cloud.utils.ConfigManager;
+import dev.arolg.cloud.utils.LanguageManager;
 import dev.arolg.cloud.utils.MessageType;
 import dev.arolg.cloud.tasks.Task;
 import dev.arolg.cloud.tasks.TaskState;
@@ -40,7 +41,7 @@ public class BukkitTask extends Task {
     @Override
     public void start() throws IOException, InterruptedException {
         if (status == TaskState.ONLINE) {
-            HugeCloud.getConsoleManager().sendMessage("Service " + name + " is already running.", MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_already_running", name), MessageType.WARN);
             return;
         }
         HttpClient client = HttpClient.newHttpClient();
@@ -66,9 +67,9 @@ public class BukkitTask extends Task {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() == 204) {
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist gestartet.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_started", name), MessageType.INFO);
         } else {
-            HugeCloud.getConsoleManager().sendMessage("Failed to start service: " + response.body(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_start_service", name) + ": " + response.body(), MessageType.ERROR);
         }
         status = TaskState.ONLINE;
     }
@@ -76,7 +77,7 @@ public class BukkitTask extends Task {
     @Override
     public void restart() throws IOException, InterruptedException {
         if (status != TaskState.ONLINE) {
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist nicht online.", MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_not_running", name), MessageType.WARN);
             return;
         }
 
@@ -103,17 +104,17 @@ public class BukkitTask extends Task {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() == 204) {
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist gestartet.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_restarted", name), MessageType.INFO);
         } else {
-            HugeCloud.getConsoleManager().sendMessage("Failed to start service: " + response.body(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_restart_service", name) + ": " + response.body(), MessageType.ERROR);
         }
-        HugeCloud.getConsoleManager().sendMessage("Group " + name + " wurde neu gestartet.", MessageType.INFO);
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("waiting_for_service", name), MessageType.INFO);
     }
 
     @Override
     public void stop() throws IOException, InterruptedException {
         if (status != TaskState.ONLINE) {
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist nicht online.", MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_not_running", name), MessageType.WARN);
             return;
         }
 
@@ -140,9 +141,9 @@ public class BukkitTask extends Task {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() == 204) {
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist gestartet.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_stopped", name), MessageType.INFO);
         } else {
-            HugeCloud.getConsoleManager().sendMessage("Failed to start service: " + response.body(), MessageType.ERROR);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_stop_service", name) + ": " + response.body(), MessageType.ERROR);
         }
     }
 
@@ -166,7 +167,7 @@ public class BukkitTask extends Task {
             HttpResponse<String> allocationResponse = client.send(allocationRequest, HttpResponse.BodyHandlers.ofString());
 
             if (allocationResponse.statusCode() != 200) {
-                System.err.println("❌ Fehler beim Abrufen der Allocations: " + allocationResponse.body());
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_fetch_allocations") + ": " + allocationResponse.body(), MessageType.ERROR);
                 return;
             }
 
@@ -187,7 +188,7 @@ public class BukkitTask extends Task {
             }
 
             if (freeAllocationId == -1) {
-                System.err.println("❌ Keine freie Allocation gefunden.");
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("no_free_allocation"), MessageType.ERROR);
                 return;
             }
 
@@ -241,12 +242,13 @@ public class BukkitTask extends Task {
             HttpResponse<String> serverResponse = client.send(serverRequest, HttpResponse.BodyHandlers.ofString());
 
             if (!(serverResponse.statusCode() == 201)) {
-                System.err.println("❌ Fehler beim Erstellen des Servers: " + serverResponse.body());
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_create_server") + ": " + serverResponse.body(), MessageType.ERROR);
+                return;
             }
 
             File configsFolder = new File(System.getProperty("user.dir") + "/local/groups/");
             if (!configsFolder.exists() && !configsFolder.mkdirs()) {
-                HugeCloud.getConsoleManager().sendMessage("Failed to create configs folder.", MessageType.ERROR);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_create_configs_folder"), MessageType.ERROR);
                 return;
             }
 
@@ -265,7 +267,7 @@ public class BukkitTask extends Task {
                 Gson gson2 = new GsonBuilder().setPrettyPrinting().create();
                 Files.writeString(configFile.toPath(), gson2.toJson(serviceData));
             } catch (Exception e) {
-                HugeCloud.getConsoleManager().sendMessage("Failed to write config file: " + e.getMessage(), MessageType.ERROR);
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_save_service_config"), MessageType.ERROR);
                 e.printStackTrace();
                 return;
             }
@@ -274,7 +276,7 @@ public class BukkitTask extends Task {
             setID(serverId);
 
             HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
-            HugeCloud.getConsoleManager().sendMessage("Das Setup der Gruppe " + name + " wurde erfolgreich abgeschlossen.", MessageType.INFO);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_created", name), MessageType.INFO);
         }else {
 
         }

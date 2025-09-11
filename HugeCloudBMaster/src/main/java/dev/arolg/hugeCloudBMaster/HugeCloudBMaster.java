@@ -28,6 +28,8 @@ public class HugeCloudBMaster {
     public static Path dataDirectory;
     private final Gson gson = new Gson();
 
+    //ProxyDirectory
+
     @Inject
     public HugeCloudBMaster(ProxyServer proxyServer, @DataDirectory Path dataDirectory) {
         HugeCloudBMaster.proxyServer = proxyServer;
@@ -38,20 +40,20 @@ public class HugeCloudBMaster {
     public void onProxyInitialization(ProxyInitializeEvent event) {
         ServersLoader.onLoad();
 
-        try {
-            ConfigManager configManager = new ConfigManager(ServersLoader.proxyDir);
-            configManager.loadConfig();
+        //   try {
+           // ConfigManager configManager = new ConfigManager(ServersLoader.proxyDir);
+            //  configManager.loadConfig();
 
-            TabListUpdater updater = new TabListUpdater(proxyServer, this, new File(ServersLoader.proxyDir, "config.yml"));
-            updater.startUpdating();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+            //  TabListUpdater updater = new TabListUpdater(proxyServer, this, new File(ServersLoader.proxyDir, "config.yml"));
+            // updater.startUpdating();
+            //   } catch (IOException e) {
+            //      throw new RuntimeException(e);
+            //   }
 
-        proxyServer.getEventManager().register(this, new OnServerSwitch());
-        proxyServer.getEventManager().register(this, new PingEvent());
+          proxyServer.getEventManager().register(this, new OnServerSwitch());
+          proxyServer.getEventManager().register(this, new PingEvent());
 
-        commandRegister("hub", new dev.arolg.hugeCloudBMaster.command.hub(proxyServer, this, new File(ServersLoader.proxyDir, "config.yml")), false);
+        //    commandRegister("hub", new dev.arolg.hugeCloudBMaster.command.hub(proxyServer, this, new File(ServersLoader.proxyDir, "config.yml")), false);
     }
 
     public void commandRegister(String name, ICommand cmd, Boolean alias, String... aliases) {

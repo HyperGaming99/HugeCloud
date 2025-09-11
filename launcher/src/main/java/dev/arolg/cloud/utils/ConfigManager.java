@@ -48,6 +48,9 @@ public class ConfigManager {
         private String apiKey = "xxxx-xxxx-xxxx-xxxx";
         private String clientAPIKey = "xxxx-xxxx-xxxx-xxxx";
         private String url = "http://localhost:8080";
+        private String language = "en";
+        private String secrectKey = "xxxx-xxxx-xxxx-xxxx";
+
         public String getApiKey() {
             return apiKey;
         }
@@ -60,6 +63,14 @@ public class ConfigManager {
             return clientAPIKey;
         }
 
+        public String getLanguage() {
+            return language;
+        }
+
+        public String getSecrectKey() {
+            return secrectKey;
+        }
+
         public void setClientAPIKey(String clientAPIKey) {
             this.clientAPIKey = clientAPIKey;
         }
@@ -70,6 +81,14 @@ public class ConfigManager {
 
         public void setUrl(String url) {
             this.url = url;
+        }
+
+        public void setLanguage(String language) {
+            this.language = language;
+        }
+
+        public void setSecrectKey(String secrectKey) {
+            this.secrectKey = secrectKey;
         }
     }
 }

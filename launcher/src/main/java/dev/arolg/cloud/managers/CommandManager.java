@@ -3,6 +3,7 @@ package dev.arolg.cloud.managers;
 import dev.arolg.cloud.HugeCloud;
 import dev.arolg.cloud.command.Command;
 import dev.arolg.cloud.utils.ANSICodes;
+import dev.arolg.cloud.utils.LanguageManager;
 import dev.arolg.cloud.utils.MessageType;
 import org.jline.reader.LineReader;
 
@@ -42,10 +43,10 @@ public class CommandManager {
                             commands.get(input[0].toLowerCase()).execute(args.toArray(new String[0]));
                         }
                     } catch (org.jline.reader.UserInterruptException e) {
-                        HugeCloud.getConsoleManager().sendMessage("Eingabe unterbrochen. Beende...", MessageType.INFO);
+                        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("console_exit"), MessageType.INFO);
                         break;
                     } catch (Exception e) {
-                        HugeCloud.getConsoleManager().sendMessage("Ein Fehler ist aufgetreten: " + e.getMessage(), MessageType.ERROR);
+                        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("error_executing_command"), MessageType.ERROR);
                         e.printStackTrace();
                     }
                 }

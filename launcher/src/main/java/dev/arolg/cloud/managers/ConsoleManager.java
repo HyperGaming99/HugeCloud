@@ -1,6 +1,7 @@
 package dev.arolg.cloud.managers;
 
 import dev.arolg.cloud.utils.ANSICodes;
+import dev.arolg.cloud.utils.LanguageManager;
 import dev.arolg.cloud.utils.MessageType;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -49,7 +50,7 @@ public class ConsoleManager {
             case INFO -> System.out.println(prefix + info + message);
             case WARN -> System.out.println(prefix + warn + message);
             case ERROR -> System.out.println(prefix + error + message);
-            default -> System.out.println(prefix + "UNKNOWN TYPE: " + message);
+            default -> System.out.println(prefix + LanguageManager.getMessage("unknown_message_type") + ": " + message);
         }
     }
 
@@ -62,7 +63,7 @@ public class ConsoleManager {
             terminal.writer().print("\033[H\033[2J");
             terminal.writer().flush();
         } catch (Exception e) {
-            System.err.println("Failed to clear console: " + e.getMessage());
+            System.err.println(LanguageManager.getMessage("error_clearing_console") + ": " + e.getMessage());
         }
     }
 
