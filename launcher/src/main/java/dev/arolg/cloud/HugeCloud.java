@@ -43,7 +43,6 @@ public class HugeCloud {
 
         LanguageManager.loadLanguage();
 
-
         starter.onstart();
         CloudAPI.main(args);
     }

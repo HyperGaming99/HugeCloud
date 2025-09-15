@@ -7,6 +7,7 @@ import dev.arolg.cloud.utils.LanguageManager;
 import dev.arolg.cloud.utils.MessageType;
 import dev.arolg.cloud.tasks.Task;
 import dev.arolg.cloud.tasks.TaskState;
+import okhttp3.*;
 
 import java.io.*;
 import java.net.URI;
@@ -150,8 +151,15 @@ public class BukkitTask extends Task {
     @Override
     public void create(String version) throws IOException, InterruptedException {
         if(dynamic) {
+
+
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
+            if(config.getSecrectKey() == "xxxx-xxxx-xxxx-xxxx") {
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("" +
+                        ""), MessageType.ERROR);
+                return;
+            }
             HttpClient client = HttpClient.newHttpClient();
 
             int nodeId = 1;
@@ -252,16 +260,22 @@ public class BukkitTask extends Task {
                 return;
             }
 
+            try {
+                String cid = getOrCreateSecret(id);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
             JsonObject serverJson = gson.fromJson(serverResponse.body(), JsonObject.class);
             JsonObject attributes = serverJson.getAsJsonObject("attributes");
             String serverId = attributes.get("uuid").getAsString();
             JsonObject serviceData = new JsonObject();
             serviceData.addProperty("id", serverId);
-            serviceData.addProperty("port", portNumber);
+            serviceData.addProperty("port", String.valueOf(portNumber));
             serviceData.addProperty("name", name);
-            serviceData.addProperty("ram", ram);
+            serviceData.addProperty("ram", String.valueOf(ram));
             serviceData.addProperty("group", group);
-            serviceData.addProperty("dynamic", dynamic);
+            serviceData.addProperty("dynamic", String.valueOf(dynamic));
             File configFile = new File(configsFolder, name + ".json");
             try {
                 Gson gson2 = new GsonBuilder().setPrettyPrinting().create();
@@ -281,6 +295,45 @@ public class BukkitTask extends Task {
 
         }
     }
+
+     public String getOrCreateSecret(String SERVER_ID) throws Exception {
+         try {
+             String filePath = "/config/paper-global.yml";
+             OkHttpClient client = new OkHttpClient();
+             ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
+             String BASE_URL = config.getUrl() + "/api/client/servers/";
+             String API_KEY = config.getClientAPIKey();
+
+             // Neuer Inhalt der Datei
+             String content = ""
+                     + "velocity-support:\n"
+                     + "  enabled: true\n"
+                     + "  online-mode: false\n"
+                     + "  secret: test\n";
+
+             // API-Request bauen
+             Request request = new Request.Builder()
+                     .url(BASE_URL + SERVER_ID + "/files/write?file=" + filePath)
+                     .post(RequestBody.create(content, MediaType.parse("text/plain")))
+                     .addHeader("Authorization", "Bearer " + API_KEY)
+                     .addHeader("Accept", "Application/vnd.pterodactyl.v1+json")
+                     .addHeader("Content-Type", "text/plain")
+                     .build();
+
+             try (Response response = client.newCall(request).execute()) {
+                 if (response.isSuccessful()) {
+                     System.out.println("Datei erfolgreich geschrieben!");
+                 } else {
+                     System.out.println("Fehler: " + response.code() + " - " + response.message());
+                     System.out.println(response.body().string());
+                 }
+             }
+         } catch (Exception e) {
+             e.printStackTrace();
+         }
+         return "NOT_IMPLEMENTED";
+    }
+
 
     public String getName() {
         return name;

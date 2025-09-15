@@ -265,13 +265,17 @@ public class BungeeTask extends Task {
         JsonObject attributes = serverJson.getAsJsonObject("attributes");
         String serverId = attributes.get("uuid").getAsString();
         JsonObject serviceData = new JsonObject();
-        getOrCreateSecret(serverId);
+        String key = getOrCreateSecret(serverId);
+        ConfigManager.Config cfg = HugeCloud.getConfigManager().getConfig();
+        cfg.setSecrectKey(key);
+        HugeCloud.getConfigManager().saveConfig();
+        serviceData.addProperty("secret", key);
         serviceData.addProperty("id", serverId);
-        serviceData.addProperty("port", portNumber);
+        serviceData.addProperty("port", String.valueOf(portNumber));
         serviceData.addProperty("name", name);
-        serviceData.addProperty("ram", ram);
+        serviceData.addProperty("ram", String.valueOf(ram));
         serviceData.addProperty("group", group);
-        serviceData.addProperty("dynamic", dynamic);
+        serviceData.addProperty("dynamic", String.valueOf(dynamic));
         File configFile = new File(configsFolder, name + ".json");
         try {
             Gson gson2 = new GsonBuilder().setPrettyPrinting().create();

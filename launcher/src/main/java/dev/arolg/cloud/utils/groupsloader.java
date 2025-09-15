@@ -71,6 +71,10 @@ public class groupsloader {
                     return;
                 }
 
+                String key = json.get("secretKey").getAsString();
+                if(key == null || key.isEmpty()) {
+                    key = "xxxx-xxxx-xxxx-xxxx";
+                }
                 BungeeTask bungeeService = new BungeeTask(id, port, ram,name, group, dynamic);
                 HugeCloud.bungeeTasks.add(bungeeService);
                 HugeCloud.BungeeTasks.add(bungeeService);
@@ -79,45 +83,5 @@ public class groupsloader {
                 e.printStackTrace();
             }
         }
-    }
-
-    public static void printServiceTable(List<BukkitTask> services, List<BungeeTask> bungeeServices) {
-        String format = "| %-36s | %-5s | %-6s | %-15s | %-8s |%n";
-        String separator = "+--------------------------------------+-------+--------+-----------------+----------+----------+";
-
-        System.out.println(separator);
-        System.out.printf(format, "ID", "Port", "RAM", "Name", "Group", "Dynamic");
-        System.out.println(separator);
-
-        if (services.isEmpty() && bungeeServices.isEmpty()) {
-            String noServicesMessage = LanguageManager.getMessage("no_services_found");
-            System.out.println("| "+noServicesMessage+".              |       |        |                 |          |          |");
-            System.out.println(separator);
-            return;
-        }
-
-        for (BukkitTask service : services) {
-            System.out.printf(
-                    format,
-                    service.getName(),
-                    service.getPort(),
-                    service.getRam() + "MB",
-                    service.getName(),
-                    service.getGroup(),
-                    service.isDynamic() ? LanguageManager.getMessage("yes") : LanguageManager.getMessage("no")
-            );
-        }
-        for (BungeeTask service : bungeeServices) {
-            System.out.printf(
-                    format,
-                    service.getName(),
-                    service.getPort(),
-                    service.getRam() + "MB",
-                    service.getName(),
-                    service.getGroup(),
-                    service.isDynamic() ? LanguageManager.getMessage("yes") : LanguageManager.getMessage("no")
-            );
-        }
-        System.out.println(separator);
     }
 }

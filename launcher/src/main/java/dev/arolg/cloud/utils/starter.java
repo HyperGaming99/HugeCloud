@@ -66,7 +66,6 @@ public class starter {
             HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.loading.services.error", e.getMessage()), MessageType.ERROR);
             e.printStackTrace();
         }
-        groupsloader.printServiceTable(HugeCloud.bukkitServices, HugeCloud.bungeeTasks);
         HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.loading.services.success"), MessageType.INFO);
         HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("hugecloud.starting.commandsystem"), MessageType.INFO);
         commandSystem.start();

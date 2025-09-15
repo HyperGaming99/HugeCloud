@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>HugeCloudBMaster</module>
+        <module>HugeCloudSManager</module>
         <module>launcher</module>
     </modules>
 
