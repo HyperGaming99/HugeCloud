@@ -1,9 +1,9 @@
 package dev.arolg.cloud.tasks.specific;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import dev.arolg.cloud.HugeCloud;
+import dev.arolg.cloud.utils.ConfigManager;
+import dev.arolg.cloud.utils.LanguageManager;
 import dev.arolg.cloud.utils.MessageType;
 import dev.arolg.cloud.tasks.Task;
 import dev.arolg.cloud.tasks.TaskState;
@@ -12,259 +12,333 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class BungeeTask extends Task {
 
     private final String name;
+    private String id;
     private final String group;
     private final boolean dynamic;
     private final int port;
-    private final int ram;
+    private int ram;
     private TaskState status;
 
     private Process process;
-    public BungeeTask(UUID id, int port, int ram, String name, String group, boolean dynamic) {
+
+    public BungeeTask(String id, int port, int ram, String name, String group, boolean dynamic) {
         super(id, port, ram, name, group, dynamic);
         this.name = name;
         this.group = group;
         this.dynamic = dynamic;
         this.port = port;
         this.ram = ram;
+        this.id = id;
         this.status = TaskState.OFFLINE;
     }
 
     @Override
-    public void start() {
+    public void start() throws IOException, InterruptedException {
         if (status == TaskState.ONLINE) {
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist bereits online.", MessageType.WARN);
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_already_running", name), MessageType.WARN);
             return;
+        }
+        HttpClient client = HttpClient.newHttpClient();
+
+        ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
+
+        String url = config.getUrl() + "/api/client/servers/" + id + "/power";
+
+        String jsonBody = """
+                {
+                    "signal": "start"
+                }
+                """;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + config.getClientAPIKey())
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 204) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_started", name), MessageType.INFO);
+        } else {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_start_service", name) + ": " + response.body(), MessageType.ERROR);
         }
         status = TaskState.ONLINE;
-        File serviceFolder = new File(System.getProperty("user.dir") + "/static/" + name);
-        File jarFile = new File(serviceFolder, "bungee.jar");
+    }
 
-        if (!jarFile.exists()) {
-            HugeCloud.getConsoleManager().sendMessage("Service JAR not found for: " + name, MessageType.ERROR);
+    @Override
+    public void restart() throws IOException, InterruptedException {
+        if (status != TaskState.ONLINE) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_not_running", name), MessageType.WARN);
             return;
         }
 
+        HttpClient client = HttpClient.newHttpClient();
+
+        ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
+
+        String url = config.getUrl() + "/api/client/servers/" + id + "/power";
+
+        String jsonBody = """
+                {
+                    "signal": "reboot"
+                }
+                """;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + config.getClientAPIKey())
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 204) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_restarted", name), MessageType.INFO);
+        } else {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_restart_service", name) + ": " + response.body(), MessageType.ERROR);
+        }
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_restarting", name), MessageType.INFO);
+    }
+
+    @Override
+    public void stop() throws IOException, InterruptedException {
+        if (status != TaskState.ONLINE) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_not_running", name), MessageType.WARN);
+            return;
+        }
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
+
+        String url = config.getUrl() + "/api/client/servers/" + id + "/power";
+
+        String jsonBody = """
+                {
+                    "signal": "stop"
+                }
+                """;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + config.getClientAPIKey())
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 204) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_stopped", name), MessageType.INFO);
+        } else {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_stop_service", name) + ": " + response.body(), MessageType.ERROR);
+        }
+    }
+
+    @Override
+    public void create(String version) throws Exception {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
+        HttpClient client = HttpClient.newHttpClient();
+
+        int nodeId = 1;
+
+        String allocationUrl = config.getUrl() + "/api/application/nodes/" + nodeId + "/allocations";
+
+        HttpRequest allocationRequest = HttpRequest.newBuilder()
+                .uri(URI.create(allocationUrl))
+                .header("Authorization", "Bearer " + config.getApiKey())
+                .header("Accept", "Application/vnd.pelican.v1+json")
+                .build();
+
+        HttpResponse<String> allocationResponse = client.send(allocationRequest, HttpResponse.BodyHandlers.ofString());
+
+        if (allocationResponse.statusCode() != 200) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_fetch_allocations") + ": " + allocationResponse.body(), MessageType.ERROR);
+            return;
+        }
+
+        JsonObject allocationJson = gson.fromJson(allocationResponse.body(), JsonObject.class);
+        JsonArray dataArray = allocationJson.getAsJsonArray("data");
+
+        int freeAllocationId = -1;
+        ;
+        int portNumber = -1;
+
+        for (JsonElement element : dataArray) {
+            JsonObject attributes = element.getAsJsonObject().getAsJsonObject("attributes");
+            boolean assigned = attributes.get("assigned").getAsBoolean();
+            if (!assigned) {
+                freeAllocationId = attributes.get("id").getAsInt();
+                portNumber = attributes.get("port").getAsInt();
+                break;
+            }
+        }
+
+        if (freeAllocationId == -1) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("no_free_allocation"), MessageType.ERROR);
+            return;
+        }
+
+        String jsonBody = """
+                {
+                  "name": "My New Server",
+                  "user": 1,
+                  "egg": 23,
+                  "environment": {
+                    "VELOCITY_VERSION": "latest"
+                  },
+                  "limits": {
+                    "memory": 1024,
+                    "swap": 0,
+                    "disk": 20048,
+                    "io": 500,
+                    "cpu": 100
+                  },
+                  "feature_limits": {
+                    "databases": 0,
+                    "allocations": 1,
+                    "backups": 0
+                  },
+                  "allocation": {
+                    "default": 1
+                  }
+                }
+                """;
+
+        // Ersetze dynamische Werte
+        jsonBody = jsonBody.replace("\"memory\": 1024", "\"memory\": " + ram);
+        jsonBody = jsonBody.replace("My New Server", name);
+        jsonBody = jsonBody.replace("\"default\": 1", "\"default\": " + freeAllocationId);
+
+        // Optional: JSON validieren / formatieren
+        JsonObject jsonObject = gson.fromJson(jsonBody, JsonObject.class);
+        jsonBody = gson.toJson(jsonObject);
+
+        // === Schritt 3: Server erstellen ===
+        HttpRequest serverRequest = HttpRequest.newBuilder()
+                .uri(URI.create(config.getUrl() + "/api/application/servers"))
+                .header("Authorization", "Bearer " + config.getApiKey())
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> serverResponse = client.send(serverRequest, HttpResponse.BodyHandlers.ofString());
+
+        if (!(serverResponse.statusCode() == 201)) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_create_server") + ": " + serverResponse.body(), MessageType.ERROR);
+            return;
+        }
+
+        // === Schritt 4: Konfigurationsdatei speichern ===
+
+        File configsFolder = new File(System.getProperty("user.dir") + "/local/groups/");
+        if (!configsFolder.exists() && !configsFolder.mkdirs()) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_create_configs_folder"), MessageType.ERROR);
+            return;
+        }
+
+        JsonObject serverJson = gson.fromJson(serverResponse.body(), JsonObject.class);
+        JsonObject attributes = serverJson.getAsJsonObject("attributes");
+        String serverId = attributes.get("uuid").getAsString();
+        JsonObject serviceData = new JsonObject();
+        String key = getOrCreateSecret(serverId);
+        ConfigManager.Config cfg = HugeCloud.getConfigManager().getConfig();
+        cfg.setSecrectKey(key);
+        HugeCloud.getConfigManager().saveConfig();
+        serviceData.addProperty("secret", key);
+        serviceData.addProperty("id", serverId);
+        serviceData.addProperty("port", String.valueOf(portNumber));
+        serviceData.addProperty("name", name);
+        serviceData.addProperty("ram", String.valueOf(ram));
+        serviceData.addProperty("group", group);
+        serviceData.addProperty("dynamic", String.valueOf(dynamic));
+        File configFile = new File(configsFolder, name + ".json");
         try {
-            int ram = getRam();
-            int ramh = ram / 2;
-
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                    "java",
-                    "-Xmx" + ram + "M",
-                    "-Xms" + ramh + "M",
-                    "-jar",
-                    jarFile.getAbsolutePath(),
-                    "nogui"
-            );
-            processBuilder.directory(serviceFolder);
-            processBuilder.redirectErrorStream(true);
-            process = processBuilder.start();
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist gestartet.", MessageType.INFO);
-        } catch (IOException e) {
-            HugeCloud.getConsoleManager().sendMessage("Failed to start service: " + e.getMessage(), MessageType.ERROR);
+            Gson gson2 = new GsonBuilder().setPrettyPrinting().create();
+       //     Files.writeString(configFile.toPath(), gson2.toJson(serviceData));
+        } catch (Exception e) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("error_saving_service_config") + ": " + configFile.getName(), MessageType.ERROR);
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void restart() {
-        if (status != TaskState.ONLINE) {
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist nicht online.", MessageType.WARN);
             return;
         }
 
-        stop();
-        start();
-        HugeCloud.getConsoleManager().sendMessage("Group " + name + " wurde neu gestartet.", MessageType.INFO);
+        //HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+        //HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_created", name), MessageType.INFO);
     }
 
-    @Override
-    public void stop() {
-        if (status != TaskState.ONLINE) {
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " ist nicht online.", MessageType.WARN);
-            return;
-        }
 
-        if (process != null && process.isAlive()) {
-            process.destroy(); // sanfter Versuch
-            try {
-                if (!process.waitFor(10, TimeUnit.SECONDS)) {
-                    process.destroyForcibly();
-                }
-            } catch (InterruptedException e) {
-                HugeCloud.getConsoleManager().sendMessage("Fehler beim Stoppen von " + name, MessageType.ERROR);
-                e.printStackTrace();
+    public String getOrCreateSecret(String service) throws Exception {
+        ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
+        String serverId = service;
+        String filePath = "/forwarding.secret"; // exakter Name der Datei!
+        String apiKey = config.getClientAPIKey();
+
+        HttpClient client = HttpClient.newHttpClient();
+        String url = config.getUrl() + "/api/client/servers/" + serverId + "/files/contents?file=" +
+                URLEncoder.encode(filePath, StandardCharsets.UTF_8);
+
+        int maxRetries = 10;
+        int retryDelay = 5000; // 5 Sekunden
+
+        for (int i = 0; i < maxRetries; i++) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Accept", "application/vnd.pterodactyl.v1+json")
+                    .header("Content-Type", "application/json")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                return response.body(); // Dateiinhalt vorhanden
+            } else if (response.statusCode() == 409) {
+                Thread.sleep(retryDelay);
+            } else if (response.statusCode() == 404) {
+                return null;
+            } else {
+                HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("error_fetching_file", filePath) + ": " + response.body(), MessageType.ERROR);
+                return null;
             }
-
-            HugeCloud.getConsoleManager().sendMessage("Group " + name + " wurde gestoppt.", MessageType.INFO);
-            status = TaskState.OFFLINE;
         }
+
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_fetch_file_after_retries", filePath), MessageType.ERROR);
+        return null;
     }
 
-    @Override
-    public void create(String version) {
-        if(dynamic) {
-            File serviceFolder = new File(System.getProperty("user.dir") + "/static/" + name);
-            if (!serviceFolder.exists() && !serviceFolder.mkdirs()) {
-                HugeCloud.getConsoleManager().sendMessage("Failed to create service folder.", MessageType.ERROR);
-                return;
-            }
-
-            File configsFolder = new File(System.getProperty("user.dir") + "/local/groups/");
-            if (!configsFolder.exists() && !configsFolder.mkdirs()) {
-                HugeCloud.getConsoleManager().sendMessage("Failed to create configs folder.", MessageType.ERROR);
-                return;
-            }
-
-            UUID serviceId = UUID.randomUUID();
-            JsonObject serviceData = new JsonObject();
-            serviceData.addProperty("id", serviceId.toString());
-            serviceData.addProperty("port", port);
-            serviceData.addProperty("name", name);
-            serviceData.addProperty("ram", ram);
-            serviceData.addProperty("group", group);
-            serviceData.addProperty("dynamic", dynamic);
-            File configFile = new File(configsFolder, name + ".json");
-            try {
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                Files.writeString(configFile.toPath(), gson.toJson(serviceData));
-            } catch (Exception e) {
-                HugeCloud.getConsoleManager().sendMessage("Failed to write config file: " + e.getMessage(), MessageType.ERROR);
-                e.printStackTrace();
-                return;
-            }
-
-            File sourceJar = new File(System.getProperty("user.dir") + "/templates/HugeCloud-Master.jar");
-            File pluginsFolder = new File(serviceFolder, "plugins");
-            File targetJar = new File(pluginsFolder, "HugeCloud-Master.jar");
-
-            if (!pluginsFolder.exists() && !pluginsFolder.mkdirs()) {
-                HugeCloud.getConsoleManager().sendMessage("Failed to create plugins folder.", MessageType.ERROR);
-                return;
-            }
-
-            try {
-                Files.copy(sourceJar.toPath(), targetJar.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                HugeCloud.getConsoleManager().sendMessage("JAR erfolgreich kopiert.", MessageType.INFO);
-            } catch (IOException e) {
-                HugeCloud.getConsoleManager().sendMessage("Fehler beim Kopieren der JAR: " + e.getMessage(), MessageType.ERROR);
-                e.printStackTrace();
-            }
-
-            File velocityConfig = new File(serviceFolder, "velocity.toml");
-
-// Inhalt deiner Config
-            String configContent = """
-# Config version. Do not change this
-config-version = "2.7"
-
-bind = "0.0.0.0:%port%"
-motd = "<#09add3>A Velocity Server"
-show-max-players = 500
-online-mode = true
-force-key-authentication = true
-prevent-client-proxy-connections = false
-player-info-forwarding-mode = "legacy"
-forwarding-secret-file = "forwarding.secret"
-announce-forge = false
-kick-existing-players = false
-ping-passthrough = "DISABLED"
-sample-players-in-ping = false
-enable-player-address-logging = true
-
-[servers]
-test = "127.0.0.1:30066"
-
-try = [
-    "test"
-]
-
-[forced-hosts]
-
-[advanced]
-compression-threshold = 256
-compression-level = -1
-login-ratelimit = 3000
-connection-timeout = 5000
-read-timeout = 30000
-haproxy-protocol = false
-tcp-fast-open = false
-bungee-plugin-message-channel = true
-show-ping-requests = false
-failover-on-unexpected-server-disconnect = true
-announce-proxy-commands = true
-log-command-executions = false
-log-player-connections = true
-accepts-transfers = false
-enable-reuse-port = false
-command-rate-limit = 50
-forward-commands-if-rate-limited = true
-kick-after-rate-limited-commands = 0
-tab-complete-rate-limit = 10
-kick-after-rate-limited-tab-completes = 0
-
-[query]
-enabled = false
-port = 25565
-map = "Velocity"
-show-plugins = false
-""".replace("%port%", String.valueOf(port));
-
-            try {
-                java.nio.file.Files.writeString(
-                        velocityConfig.toPath(),
-                        configContent,
-                        java.nio.file.StandardOpenOption.CREATE,
-                        java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
-                );
-            } catch (IOException e) {
-                HugeCloud.getConsoleManager().sendMessage("Fehler beim Schreiben der velocity.toml: " + e.getMessage(), MessageType.ERROR);
-                e.printStackTrace();
-            }
-
-            File secretFile = new File(serviceFolder, "forwarding.secret");
-            if (!secretFile.exists()) {
-                try {
-                    String secret = java.util.UUID.randomUUID().toString().replace("-", "");
-                    java.nio.file.Files.writeString(secretFile.toPath(), secret);
-                } catch (IOException e) {
-                    HugeCloud.getConsoleManager().sendMessage("Fehler beim Erstellen von forwarding.secret: " + e.getMessage(), MessageType.ERROR);
-                    e.printStackTrace();
-                }
-            }
 
 
-
-            String downloadUrl = "https://fill-data.papermc.io/v1/objects/61249fa5b9b33bc7e3223581eab6aedad790a295caf0e39da2ff3c8ec9d9117f/velocity-3.4.0-SNAPSHOT-523.jar";
-            File jarFile = new File(serviceFolder, "bungee.jar");
-
-            try (var in = new BufferedInputStream(new URL(downloadUrl).openStream());
-                 var fileOutputStream = new FileOutputStream(jarFile)) {
-
-                byte[] dataBuffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                    fileOutputStream.write(dataBuffer, 0, bytesRead);
-                }
-                HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
-                HugeCloud.getConsoleManager().sendMessage("Das Setup der Gruppe " + name + " wurde erfolgreich abgeschlossen.", MessageType.INFO);
-            } catch (Exception e) {
-                HugeCloud.getConsoleManager().sendMessage("Failed to download JAR file: " + e.getMessage(), MessageType.ERROR);
-                e.printStackTrace();
-            }
-        }else {
-
-        }
+    private String generateRandomSecret() {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[32]; // 256-bit
+        random.nextBytes(bytes);
+        return HexFormat.of().formatHex(bytes);
     }
-
     public String getName() {
         return name;
     }

@@ -6,6 +6,8 @@ import dev.arolg.cloud.managers.CommandManager;
 import dev.arolg.cloud.managers.ConsoleManager;
 import dev.arolg.cloud.tasks.specific.BukkitTask;
 import dev.arolg.cloud.tasks.specific.BungeeTask;
+import dev.arolg.cloud.utils.ConfigManager;
+import dev.arolg.cloud.utils.LanguageManager;
 import dev.arolg.cloud.utils.starter;
 import lombok.Getter;
 
@@ -22,6 +24,8 @@ public class HugeCloud {
     @Getter
     private static CloudManager cloudManager;
 
+    @Getter
+    private static ConfigManager configManager;
 
     public static final List<BukkitTask> bukkitServices = new ArrayList<>();
     public static final List<BungeeTask> bungeeTasks = new ArrayList<>();
@@ -34,8 +38,16 @@ public class HugeCloud {
         commandManager = new CommandManager();
         cloudManager = new CloudManager();
 
+        configManager = new ConfigManager();
+        configManager.loadConfig();
+
+        LanguageManager.loadLanguage();
 
         starter.onstart();
         CloudAPI.main(args);
+    }
+
+    public static ConfigManager getConfigManager() {
+        return configManager;
     }
 }

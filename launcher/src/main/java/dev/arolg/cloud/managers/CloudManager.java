@@ -5,6 +5,7 @@ import dev.arolg.cloud.tasks.specific.BukkitTask;
 import dev.arolg.cloud.tasks.specific.BungeeTask;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 
 public class CloudManager {
@@ -38,4 +39,7 @@ public class CloudManager {
         return null;
     }
 
+    public static List<BukkitTask> getBukkitServices() {
+        return HugeCloud.bukkitServices;
+    }
 }
