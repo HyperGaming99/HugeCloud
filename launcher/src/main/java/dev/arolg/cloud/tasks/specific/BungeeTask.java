@@ -156,6 +156,8 @@ public class BungeeTask extends Task {
         } else {
             HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("failed_to_stop_service", name) + ": " + response.body(), MessageType.ERROR);
         }
+
+        status = TaskState.OFFLINE;
     }
 
     @Override
@@ -279,15 +281,15 @@ public class BungeeTask extends Task {
         File configFile = new File(configsFolder, name + ".json");
         try {
             Gson gson2 = new GsonBuilder().setPrettyPrinting().create();
-       //     Files.writeString(configFile.toPath(), gson2.toJson(serviceData));
+            Files.writeString(configFile.toPath(), gson2.toJson(serviceData));
         } catch (Exception e) {
             HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("error_saving_service_config") + ": " + configFile.getName(), MessageType.ERROR);
             e.printStackTrace();
             return;
         }
 
-        //HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
-        //HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_created", name), MessageType.INFO);
+        HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
+        HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_created", name), MessageType.INFO);
     }
 
 
@@ -331,14 +333,6 @@ public class BungeeTask extends Task {
         return null;
     }
 
-
-
-    private String generateRandomSecret() {
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[32]; // 256-bit
-        random.nextBytes(bytes);
-        return HexFormat.of().formatHex(bytes);
-    }
     public String getName() {
         return name;
     }

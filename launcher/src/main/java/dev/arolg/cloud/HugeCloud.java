@@ -1,6 +1,6 @@
 package dev.arolg.cloud;
 
-import dev.arolg.cloud.api.CloudAPI;
+import dev.arolg.cloud.api.GroupApi;
 import dev.arolg.cloud.managers.CloudManager;
 import dev.arolg.cloud.managers.CommandManager;
 import dev.arolg.cloud.managers.ConsoleManager;
@@ -44,7 +44,7 @@ public class HugeCloud {
         LanguageManager.loadLanguage();
 
         starter.onstart();
-        CloudAPI.main(args);
+        GroupApi.start();
     }
 
     public static ConfigManager getConfigManager() {

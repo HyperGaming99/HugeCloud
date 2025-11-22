@@ -260,20 +260,27 @@ public class BukkitTask extends Task {
                 return;
             }
 
-            try {
-                String cid = getOrCreateSecret(id);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+
+
 
             JsonObject serverJson = gson.fromJson(serverResponse.body(), JsonObject.class);
             JsonObject attributes = serverJson.getAsJsonObject("attributes");
             String serverId = attributes.get("uuid").getAsString();
+            try {
+                String cid = getOrCreateSecret(serverId);
+                if(cid == "NOT_IMPLEMENTED") {
+                    return;
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
             JsonObject serviceData = new JsonObject();
             serviceData.addProperty("id", serverId);
             serviceData.addProperty("port", String.valueOf(portNumber));
             serviceData.addProperty("name", name);
             serviceData.addProperty("ram", String.valueOf(ram));
+            serviceData.addProperty("serect", config.getSecrectKey());
             serviceData.addProperty("group", group);
             serviceData.addProperty("dynamic", String.valueOf(dynamic));
             File configFile = new File(configsFolder, name + ".json");
@@ -289,6 +296,7 @@ public class BukkitTask extends Task {
             setPort(portNumber);
             setID(serverId);
 
+
             HugeCloud.getConsoleManager().clearConsole(HugeCloud.getConsoleManager().createLineReader().getTerminal());
             HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("service_created", name), MessageType.INFO);
         }else {
@@ -296,43 +304,76 @@ public class BukkitTask extends Task {
         }
     }
 
-     public String getOrCreateSecret(String SERVER_ID) throws Exception {
-         try {
-             String filePath = "/config/paper-global.yml";
-             OkHttpClient client = new OkHttpClient();
-             ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
-             String BASE_URL = config.getUrl() + "/api/client/servers/";
-             String API_KEY = config.getClientAPIKey();
+    //  Request createFolderRequest = new Request.Builder()
+    //            .url(config.getUrl() + "/api/client/servers/" + SERVER_ID + "/files/create-folder")
+    //           .post(RequestBody.create(createFolderJson, MediaType.parse("application/json")))
+    //           .addHeader("Authorization", "Bearer " + API_KEY)
+    //          .addHeader("Content-Type", "application/json")
+    //          .build();
+    //
+    //  try (Response folderResponse = client.newCall(createFolderRequest).execute()) {
+    //        if (folderResponse.isSuccessful()) {
+    //          System.out.println("Ordner 'config' erfolgreich erstellt.");
+    //        } else {
+    //         System.out.println("Fehler beim Erstellen des Ordners: " + folderResponse.code() + " - " + folderResponse.message());
+    //         System.out.println(folderResponse.body().string());
+    //     }
+    // }
 
-             // Neuer Inhalt der Datei
-             String content = ""
-                     + "velocity-support:\n"
-                     + "  enabled: true\n"
-                     + "  online-mode: false\n"
-                     + "  secret: test\n";
 
-             // API-Request bauen
-             Request request = new Request.Builder()
-                     .url(BASE_URL + SERVER_ID + "/files/write?file=" + filePath)
-                     .post(RequestBody.create(content, MediaType.parse("text/plain")))
-                     .addHeader("Authorization", "Bearer " + API_KEY)
-                     .addHeader("Accept", "Application/vnd.pterodactyl.v1+json")
-                     .addHeader("Content-Type", "text/plain")
-                     .build();
+    public String getOrCreateSecret(String SERVER_ID) throws Exception {
+        OkHttpClient client = new OkHttpClient();
+        ConfigManager.Config config = HugeCloud.getConfigManager().getConfig();
+        String API_KEY = config.getClientAPIKey();
+        String filePath = "config/paper-global.yml";
 
-             try (Response response = client.newCall(request).execute()) {
-                 if (response.isSuccessful()) {
-                     System.out.println("Datei erfolgreich geschrieben!");
-                 } else {
-                     System.out.println("Fehler: " + response.code() + " - " + response.message());
-                     System.out.println(response.body().string());
-                 }
-             }
-         } catch (Exception e) {
-             e.printStackTrace();
-         }
-         return "NOT_IMPLEMENTED";
+        String content = ""
+                + "proxies:\n"
+                + "  velocity:\n"
+                + "    enabled: true\n"
+                + "    online-mode: false\n"
+                + "    secret: " + config.getSecrectKey();
+
+        if (config.getSecrectKey().equals("xxxx-xxxx-xxxx-xxxx")) {
+            HugeCloud.getConsoleManager().sendMessage(LanguageManager.getMessage("no_secret_key_set"), MessageType.ERROR);
+            return "NOT_IMPLEMENTED";
+        }
+
+        int maxRetries = 5; // maximal 5 Versuche
+        int attempt = 0;
+
+        while (attempt < maxRetries) {
+            attempt++;
+
+            Request request = new Request.Builder()
+                    .url(config.getUrl() + "/api/client/servers/" + SERVER_ID + "/files/write?file=" + filePath)
+                    .post(RequestBody.create(content, MediaType.parse("text/plain")))
+                    .addHeader("Authorization", "Bearer " + API_KEY)
+                    .addHeader("Accept", "Application/vnd.pterodactyl.v1+json")
+                    .addHeader("Content-Type", "text/plain")
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    return "SUCCESS";
+                } else {
+                    if (response.code() == 409 && attempt < maxRetries) {
+                        Thread.sleep(5000);
+                        continue;
+                    }
+
+                    return "FAILED";
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "ERROR";
+            }
+        }
+
+        return "MAX_RETRIES_REACHED";
     }
+
+
 
 
     public String getName() {
