@@ -21,30 +21,50 @@ public class ServersLoader {
         public static void onLoad() {
             try {
                 // Call the API to get all groups
-                URL url = new URL("http://77.90.37.182:1000/groups");
+                URL url = new URL("http://77.90.37.181:1000/groups");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
 
                 if (connection.getResponseCode() == 200) {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                        JsonArray groups = gson.fromJson(reader, JsonArray.class);
+                        String response = reader.readLine();
+                        if (response == null || response.isEmpty()) {
+                            System.err.println("Leere Antwort von API");
+                            return;
+                        }
 
-                        for (int i = 0; i < groups.size(); i++) {
-                            String groupInfo = groups.get(i).getAsString();
-                            String[] parts = groupInfo.split(" - localhost:");
+                        response = response.trim();
+
+                        // Prüfen, ob es wie ein JSON-Array aussieht
+                        if (response.startsWith("[") && response.endsWith("]")) {
+                            response = response.substring(1, response.length() - 1); // [ ... ] entfernen
+                        }
+
+                        // Kommas trennen, falls mehrere Server vorhanden
+                        String[] entries = response.split(",");
+
+                        for (String entry : entries) {
+                            entry = entry.trim();
+                            // Entferne ggf. Anführungszeichen
+                            if (entry.startsWith("\"") && entry.endsWith("\"")) {
+                                entry = entry.substring(1, entry.length() - 1);
+                            }
+
+                            String[] parts = entry.split(" - localhost:");
                             if (parts.length != 2) continue;
 
-                            String name = parts[0];
-                            int port = Integer.parseInt(parts[1]);
+                            String name = parts[0].trim();
+                            int port = Integer.parseInt(parts[1].trim());
 
-                            ServerInfo info = new ServerInfo(name, new InetSocketAddress("127.0.0.1", port));
+                            ServerInfo info = new ServerInfo(name, new InetSocketAddress("0.0.0.0", port));
+
                             if (HugeCloudBMaster.proxyServer.getServer(name).isPresent()) {
                                 ServerInfo existing = HugeCloudBMaster.proxyServer.getServer(name).get().getServerInfo();
                                 HugeCloudBMaster.proxyServer.unregisterServer(existing);
                                 HugeCloudBMaster.proxyServer.registerServer(info);
-                                continue;
+                            } else {
+                                HugeCloudBMaster.proxyServer.registerServer(info);
                             }
-                            HugeCloudBMaster.proxyServer.registerServer(info);
                         }
                     }
                 } else {

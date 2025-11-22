@@ -71,10 +71,6 @@ public class groupsloader {
                     return;
                 }
 
-                String key = json.get("secretKey").getAsString();
-                if(key == null || key.isEmpty()) {
-                    key = "xxxx-xxxx-xxxx-xxxx";
-                }
                 BungeeTask bungeeService = new BungeeTask(id, port, ram,name, group, dynamic);
                 HugeCloud.bungeeTasks.add(bungeeService);
                 HugeCloud.BungeeTasks.add(bungeeService);
